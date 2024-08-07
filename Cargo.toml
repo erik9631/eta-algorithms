@@ -1,0 +1,11 @@
+[package]
+name = "Algorithms"
+version = "0.1.0"
+edition = "2021"
+
+[profile.test]
+debug = true
+#inherits = "release"
+
+
+[dependencies]
