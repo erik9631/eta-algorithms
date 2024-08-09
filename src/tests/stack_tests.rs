@@ -11,10 +11,14 @@ pub fn stack_push_pop_test(){
     let mut stack = Stack::<i32>::new(10);
     for i in 0..10 {
         stack.push(i);
+        assert_eq!(stack.len() as i32, i + 1);
     }
 
+    let mut len_counter = 9;
     for i in (0..10).rev() {
         assert_eq!(stack.pop(), Some(i));
+        assert_eq!(stack.len() as i32, len_counter);
+        len_counter -= 1;
     }
 }
 
@@ -23,11 +27,15 @@ pub fn stack_top_pop_test(){
     let mut stack = Stack::<i32>::new(10);
     for i in 0..10 {
         stack.push(i);
+        assert_eq!(stack.len() as i32, i + 1);
     }
 
+    let mut len_counter = 9;
     for i in (0..10).rev() {
         assert_eq!(stack.top(), Some(&i));
         assert_eq!(stack.pop(), Some(i));
+        assert_eq!(stack.len() as i32, len_counter);
+        len_counter -= 1;
     }
 }
 
@@ -39,13 +47,18 @@ pub fn stack_extend_test(){
     }
 
     stack.extend(20);
+    assert_eq!(stack.capacity(), 20);
 
     for i in 10..20 {
         stack.push(i);
+        assert_eq!(stack.len() as i32, i + 1);
     }
 
+    let mut len_counter = 19;
     for i in (0..20).rev() {
         assert_eq!(stack.pop(), Some(i));
+        assert_eq!(stack.len() as i32, len_counter);
+        len_counter -= 1;
     }
 }
 
@@ -56,14 +69,20 @@ pub fn stack_extend_by_test(){
         stack.push(i);
     }
 
-    stack.extend_by(20);
+    stack.extend_by(10);
+    assert_eq!(stack.capacity(), 20);
 
     for i in 10..20 {
         stack.push(i);
+        assert_eq!(stack.len() as i32, i + 1);
     }
 
+
+    let mut len_counter = 19;
     for i in (0..20).rev() {
         assert_eq!(stack.pop(), Some(i));
+        assert_eq!(stack.len() as i32, len_counter);
+        len_counter -= 1;
     }
 }
 
@@ -74,12 +93,15 @@ pub fn extend_over_capacity(){
     let mut stack = Stack::<i32>::new(10);
     for i in 0..10 {
         stack.push(i);
+        assert_eq!(stack.len() as i32, i + 1);
     }
 
     stack.extend(10);
+    assert_eq!(stack.capacity(), 10);
 
     for i in 10..20 {
         stack.push(i);
+        assert_eq!(stack.len() as i32, i + 1);
     }
 
     for i in (0..20).rev() {
@@ -123,7 +145,7 @@ pub fn stack_index_test(){
     let mut stack = Stack::<i32>::new(10);
     for i in 0..10 {
         stack.push(i);
-
+        assert_eq!(stack.len() as i32, i + 1);
     }
 
     let mut counter = 9;
@@ -142,4 +164,15 @@ pub fn stack_index_out_of_bounds_test(){
 
     }
     stack[-10];
+}
+#[test]
+pub fn test_stack_pop_empty() {
+    let mut stack = Stack::<i32>::new(10);
+    assert_eq!(stack.pop(), None);
+}
+
+#[test]
+pub fn test_stack_top_empty() {
+    let mut stack = Stack::<i32>::new(10);
+    assert_eq!(stack.top(), None);
 }

@@ -5,7 +5,7 @@ edition = "2021"
 
 [profile.test]
 debug = true
-inherits = "release"
+#inherits = "release"
 
 
 [dependencies]

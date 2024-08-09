@@ -4,7 +4,6 @@ use std::ops::{Index, IndexMut};
 use std::ptr;
 
 pub struct Stack<T> {
-    phantom_data: PhantomData<T>,
     capacity: usize,
     len: usize,
     layout: Layout,
@@ -15,10 +14,11 @@ pub struct Stack<T> {
 }
 
 impl<T> Stack<T> {
+    #[inline(always)]
     pub fn capacity(&self) -> usize {
         return self.capacity;
     }
-
+    #[inline(always)]
     pub fn len(&self) -> usize {
         return self.len;
     }
@@ -30,7 +30,6 @@ impl<T> Stack<T> {
         }
 
         return Stack {
-            phantom_data: PhantomData,
             capacity,
             layout,
             data,
@@ -45,7 +44,7 @@ impl<T> Stack<T> {
         unsafe {
             self.data = realloc(self.data as *mut u8, new_layout, new_layout.size()) as *mut T;
             if self.data.is_null() {
-                panic!("Failed to allocate memory");
+                panic!("Failed to reallocate memory");
             }
             self.end = self.data.add(new_capacity);
             self.top = self.data.add(self.len - 1);
@@ -53,11 +52,11 @@ impl<T> Stack<T> {
         self.capacity = new_capacity;
         self.layout = new_layout;
     }
-
+    #[inline(always)]
     pub fn extend_by(&mut self, additional_capacity: usize) {
         self.extend(self.capacity + additional_capacity);
     }
-
+    #[inline(always)]
     pub fn top(&self) -> Option<&T> {
         if self.len == 0 {
             return None;
@@ -66,7 +65,7 @@ impl<T> Stack<T> {
             Some(self.top.as_ref().unwrap())
         }
     }
-
+    #[inline(always)]
     pub fn top_mut(&mut self) -> Option<&mut T> {
         if self.len == 0 {
             return None;
@@ -75,6 +74,7 @@ impl<T> Stack<T> {
             Some(self.top.as_mut().unwrap())
         }
     }
+    #[inline(always)]
     pub fn push(&mut self, value: T) {
         let new_top = unsafe{self.top.offset(1)};
         if new_top == self.end {
@@ -87,7 +87,7 @@ impl<T> Stack<T> {
             self.len += 1;
         }
     }
-
+    #[inline(always)]
     pub fn pop(&mut self) -> Option<T> {
         if self.len == 0 {
             return None;
@@ -104,7 +104,7 @@ impl<T> Stack<T> {
 
 impl<T> Index<isize> for Stack<T> {
     type Output = T;
-
+    #[inline(always)]
     fn index(&self, index: isize) -> &Self::Output {
         if index > 0{
             panic!("Index out of bounds");
@@ -120,6 +120,7 @@ impl<T> Index<isize> for Stack<T> {
 }
 
 impl<T> IndexMut<isize> for Stack<T>{
+    #[inline(always)]
     fn index_mut(&mut self, index: isize) -> &mut Self::Output {
         if index > 0{
             panic!("Index out of bounds");
