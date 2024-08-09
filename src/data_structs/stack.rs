@@ -47,7 +47,7 @@ impl<T> Stack<T> {
                 panic!("Failed to reallocate memory");
             }
             self.end = self.data.add(new_capacity);
-            self.top = self.data.add(self.len - 1);
+            self.top = self.data.offset((self.len as isize) - 1);
         }
         self.capacity = new_capacity;
         self.layout = new_layout;
@@ -74,18 +74,16 @@ impl<T> Stack<T> {
             Some(self.top.as_mut().unwrap())
         }
     }
-    #[inline(always)]
+    // #[inline(always)]
     pub fn push(&mut self, value: T) {
         let new_top = unsafe{self.top.offset(1)};
         if new_top == self.end {
             panic!("Stack over capacity!");
         }
 
-        unsafe {
-            self.top = new_top;
-            *self.top = value;
-            self.len += 1;
-        }
+        self.top = new_top;
+        unsafe {self.top.write(value)};
+        self.len += 1;
     }
     #[inline(always)]
     pub fn pop(&mut self) -> Option<T> {

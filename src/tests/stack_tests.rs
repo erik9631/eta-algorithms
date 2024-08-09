@@ -176,3 +176,29 @@ pub fn test_stack_top_empty() {
     let mut stack = Stack::<i32>::new(10);
     assert_eq!(stack.top(), None);
 }
+#[test]
+pub fn test_stack_multiple_extend() {
+    let mut stack = Stack::<i32>::new(5);
+    stack.push(1);
+    stack.push(2);
+    stack.extend(10);
+    assert_eq!(stack.capacity(), 10);
+    assert_eq!(stack.len(), 2);
+    assert_eq!(stack.top(), Some(2).as_ref());
+    assert_eq!(stack.pop(), Some(2));
+    assert_eq!(stack.pop(), Some(1));
+    assert_eq!(stack.pop(), None);
+    stack.extend(15);
+    stack.extend(20);
+    assert_eq!(stack.capacity(), 20);
+}
+
+#[test]
+pub fn test_stack_with_non_copy_type() {
+    let mut stack = Stack::<String>::new(5);
+    stack.push("Hello".to_string());
+    stack.push("World".to_string());
+    assert_eq!(stack.pop(), Some("World".to_string()));
+    assert_eq!(stack.pop(), Some("Hello".to_string()));
+    assert_eq!(stack.pop(), None);
+}

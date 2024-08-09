@@ -1,4 +1,5 @@
-use std::alloc::{Layout, realloc};
+use std::alloc::{dealloc, Layout, realloc};
+use std::ptr;
 use crate::utils::{closest_pow2, rotate_dec, rotate_inc};
 
 pub struct Queue<T>{
@@ -30,7 +31,30 @@ impl<T> Queue<T> {
 
     pub fn extend_pow2_sized(&mut self, capacity_pow: usize) {
         let new_capacity = closest_pow2(capacity_pow);
+        if new_capacity <= self.pow2_capacity {
+            panic!("New capacity is less than or equal to current capacity");
+        }
+
         let new_layout = Layout::array::<T>(new_capacity).expect("Failed to create layout");
+        // Data can only wrap if data actually exists. We need to do len check.
+        if self.front >= self.end && self.len > 0{
+            let new_data = unsafe { std::alloc::alloc(new_layout) as *mut T };
+            if new_data.is_null() {
+                panic!("Failed to allocate memory");
+            }
+            let from_front_to_array_end_len = self.capacity() - self.front;
+            let from_start_to_end_len = self.front;
+            unsafe { ptr::copy_nonoverlapping(self.data.add(self.front), new_data, from_front_to_array_end_len) }; // After Front
+            unsafe { ptr::copy_nonoverlapping(self.data, new_data.add(from_front_to_array_end_len), from_start_to_end_len) }; // Before Front
+
+            unsafe { dealloc(self.data as *mut u8, self.layout) };
+            self.pow2_capacity = new_capacity;
+            self.data = new_data;
+            self.front = 0;
+            self.end = from_front_to_array_end_len + from_start_to_end_len;
+            return;
+        }
+
         unsafe {
             self.data = realloc(self.data as *mut u8, new_layout, new_layout.size()) as *mut T;
             if self.data.is_null() {
@@ -38,6 +62,7 @@ impl<T> Queue<T> {
             }
             self.pow2_capacity = new_capacity;
         }
+
     }
 
     pub fn extend_pow2_sized_by(&mut self, capacity_pow: usize) {
@@ -55,6 +80,8 @@ impl<T> Queue<T> {
     pub fn len(&self) -> usize {
         return self.len;
     }
+
+    #[inline(always)]
     pub fn push(&mut self, value: T) {
         if self.len == self.pow2_capacity {
             panic!("Queue is full");
@@ -65,7 +92,7 @@ impl<T> Queue<T> {
             self.end = rotate_inc(self.end, self.pow2_capacity - 1);
         }
     }
-
+    #[inline(always)]
     pub fn front(&self) -> Option<&T> {
         if self.len == 0 {
             return None;
@@ -74,7 +101,7 @@ impl<T> Queue<T> {
             Some(self.data.add(self.front).as_ref().unwrap())
         }
     }
-
+    #[inline(always)]
     pub fn front_mut(&mut self) -> Option<&mut T> {
         if self.len == 0 {
             return None;
@@ -83,7 +110,7 @@ impl<T> Queue<T> {
             Some(self.data.add(self.front).as_mut().unwrap())
         }
     }
-
+    #[inline(always)]
     pub fn dequeue(&mut self) -> Option<T> {
         if self.len == 0 {
             return None;
@@ -100,7 +127,7 @@ impl<T> Queue<T> {
 impl<T> Drop for Queue<T> {
     fn drop(&mut self) {
         unsafe {
-            std::alloc::dealloc(self.data as *mut u8, self.layout);
+            dealloc(self.data as *mut u8, self.layout);
         }
     }
 }
