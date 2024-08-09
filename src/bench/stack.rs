@@ -3,7 +3,7 @@ use std::time::Instant;
 
 #[test]
 pub fn stack_benchmark(){
-    let data_size = 1000000;
+    let data_size = 10000000;
     let mut stack = Stack::<i32>::new(2);
     let mut current_size = 2;
     let start = Instant::now();
