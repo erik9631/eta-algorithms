@@ -1,6 +1,6 @@
 use std::alloc::{dealloc, Layout, realloc};
 use std::ptr;
-use crate::utils::{closest_pow2, rotate_dec, rotate_inc};
+use crate::utils::{closest_pow2, rotate_inc};
 
 pub struct Queue<T>{
     pow2_capacity: usize,

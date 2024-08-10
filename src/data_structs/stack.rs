@@ -1,5 +1,4 @@
 use std::alloc::{Layout, realloc};
-use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 use std::ptr;
 
