@@ -68,7 +68,83 @@ impl<T> Array<T> {
             end: unsafe { self.data.offset(self.capacity as isize) },
         };
     }
+
+    pub fn as_slice(&self) -> &[T] {
+        return unsafe{std::slice::from_raw_parts(self.data, self.capacity)};
+    }
+
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
+        return unsafe{std::slice::from_raw_parts_mut(self.data, self.capacity)};
+    }
+
+    pub fn split_at(&mut self, index: usize) -> (&[T], &[T]) {
+        if index >= self.capacity {
+            panic!("Index out of bounds");
+        }
+        let new_data = unsafe{self.data.add(index)};
+        let left = unsafe{std::slice::from_raw_parts(self.data, index)};
+        let right = unsafe{std::slice::from_raw_parts(new_data, self.capacity - index)};
+        return (left, right);
+    }
+
+    pub fn split_at_mut(&mut self, index: usize) -> (&mut [T], &mut [T]) {
+        if index >= self.capacity {
+            panic!("Index out of bounds");
+        }
+        let new_data = unsafe{self.data.add(index)};
+        let left = unsafe{std::slice::from_raw_parts_mut(self.data, index)};
+        let right = unsafe{std::slice::from_raw_parts_mut(new_data, self.capacity - index)};
+        return (left, right);
+    }
+
+    pub fn split_into_parts(&self, parts: usize) -> Array<&[T]>{
+        if parts >= self.capacity {
+            panic!("Parts must be less than or equal to the capacity of the array");
+        }
+
+        if parts == 0 {
+            panic!("Parts cannot be 0");
+        }
+
+        let chunk_size = self.capacity / parts;
+        let remainder = self.capacity % parts;
+
+        let mut arr = Array::<&[T]>::new(parts);
+        let mut ptr = self.data as *const T;
+        for i in 0..parts -1 {
+            arr[i] = unsafe{std::slice::from_raw_parts(ptr, chunk_size)};
+            ptr = unsafe{ptr.add(chunk_size)};
+        }
+
+        arr[parts - 1] = unsafe{std::slice::from_raw_parts(ptr, chunk_size + remainder)};
+
+        return arr;
+    }
+    pub fn split_into_parts_mut(&mut self, parts: usize) -> Array<&mut[T]>{
+        if parts >= self.capacity {
+            panic!("Parts must be less than or equal to the capacity of the array");
+        }
+
+        if parts == 0 {
+            panic!("Parts cannot be 0");
+        }
+
+        let chunk_size = self.capacity / parts;
+        let remainder = self.capacity % parts;
+
+        let mut arr = Array::<&mut [T]>::new(parts);
+        let mut ptr = self.data;
+        for i in 0..parts - 1 {
+            arr[i] = unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size)};
+            ptr = unsafe{ptr.add(chunk_size)};
+        }
+
+        arr[parts - 1] = unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size + remainder)};
+
+        return arr;
+    }
 }
+
 
 impl<T> Drop for Array<T>{
     fn drop(&mut self) {
