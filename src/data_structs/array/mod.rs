@@ -98,7 +98,7 @@ impl<T> Array<T> {
     }
 
     pub fn split_into_parts(&self, parts: usize) -> Array<&[T]>{
-        if parts >= self.capacity {
+        if parts > self.capacity {
             panic!("Parts must be less than or equal to the capacity of the array");
         }
 
