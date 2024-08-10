@@ -73,7 +73,7 @@ impl<T> Stack<T> {
             Some(self.top.as_mut().unwrap())
         }
     }
-    // #[inline(always)]
+    #[inline(always)]
     pub fn push(&mut self, value: T) {
         let new_top = unsafe{self.top.offset(1)};
         if new_top == self.end {

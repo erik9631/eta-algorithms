@@ -64,7 +64,7 @@ impl<T> Queue<T> {
         }
 
     }
-
+    #[inline(always)]
     pub fn extend_pow2_sized_by(&mut self, capacity_pow: usize) {
         if self.pow2_capacity < self.pow2_capacity + capacity_pow {
             return;

@@ -11,6 +11,7 @@ pub struct Array<T> {
 }
 
 impl<T> Array<T> {
+    #[inline(always)]
     pub fn capacity(&self) -> usize {
         return self.capacity;
     }
@@ -25,6 +26,7 @@ impl<T> Array<T> {
         self.capacity = new_capacity;
         self.layout = new_layout;
     }
+    #[inline(always)]
     pub fn extend_by(&mut self, additional_capacity: usize){
         self.extend(self.capacity + additional_capacity);
     }
@@ -42,6 +44,7 @@ impl<T> Array<T> {
             capacity,
         };
     }
+    #[inline(always)]
     pub fn iter(&self) -> iterator::ArrayIterator<T> {
         return iterator::ArrayIterator {
             phantom_data: &self.phantom_data,
@@ -49,7 +52,7 @@ impl<T> Array<T> {
             end: unsafe { self.data.offset(self.capacity as isize) },
         };
     }
-
+    #[inline(always)]
     pub fn iter_mut(&mut self) -> iterator::ArrayIteratorMut<T> {
         return iterator::ArrayIteratorMut {
             phantom_data: &mut self.phantom_data,
@@ -70,6 +73,7 @@ impl<T> Drop for Array<T>{
 impl<T> Index<usize> for Array<T>{
     type Output = T;
 
+    #[inline(always)]
     fn index(&self, index: usize) -> &Self::Output {
         if index >= self.capacity {
             panic!("Index out of bounds");
@@ -82,6 +86,7 @@ impl<T> Index<usize> for Array<T>{
 }
 
 impl<T> IndexMut<usize> for Array<T>{
+    #[inline(always)]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         if index >= self.capacity {
             panic!("Index out of bounds");
