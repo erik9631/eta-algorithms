@@ -7,6 +7,19 @@ pub fn array_init_test(){
 }
 
 #[test]
+pub fn array_default_test(){
+    let array = Array::<i8>::new_default_bytes(100, 0);
+    assert_eq!(array.capacity(), 100);
+    for i in array.iter() {
+        assert_eq!(*i, 0i8);
+    }
+    let array2 = Array::<i8>::new_default_bytes(100, 122);
+    for i in array2.iter() {
+        assert_eq!(*i, 122i8);
+    }
+}
+
+#[test]
 pub fn array_index_test(){
     let mut array = Array::<i32>::new(10);
     for i in 0..10 {

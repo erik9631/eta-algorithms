@@ -1,6 +1,8 @@
 use std::alloc::{Layout, realloc};
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
+use std::ptr;
+
 pub mod iterator;
 
 pub struct Array<T> {
@@ -43,6 +45,12 @@ impl<T> Array<T> {
             data,
             capacity,
         };
+    }
+
+    pub fn new_default_bytes(capacity: usize, default: u8) -> Self {
+        let arr = Self::new(capacity);
+        unsafe{ptr::write_bytes(arr.data, default, capacity)};
+        return arr;
     }
     #[inline(always)]
     pub fn iter(&self) -> iterator::ArrayIterator<T> {
