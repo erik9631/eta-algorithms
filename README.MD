@@ -1,4 +1,3 @@
-# Teo's data structures
 ## Description
 Custom data structures that I use in my projects.
 
@@ -36,5 +35,5 @@ If you think something is missing contact me or submit a PR.
 Add this to your Cargo.toml
 ```toml
 [dependencies]
-teo-algorithms = "1.0.0"
+eta-algorithms = "1.0.0"
 ```
