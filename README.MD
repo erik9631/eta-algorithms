@@ -16,9 +16,13 @@ I benchmarked the code on two different machines:
 The results are as follows:
 
 | Data structure | Push time | Pop time | Sum time |
-| -------------- | --------- | -------- | -------- |
-| Custom Array   | 1.5ms     | 0.5ms    | 0.7ms    |
-| Vec            | 1.5ms     | 0.5ms    | 0.7ms    |
+|----------------|-----------|----------|----------|
+| Custom Array   | -         | -        | -        |
+| Vec            | -         | -        | -        |
+| Queue Custom   | -         | -        | -        |
+| Deque          | -         | -        | -        |
+| Stack Custom   | -         | -        | -        |
+| Vec Stack      | -         | -        | -        |
 
 ## Safety
 I wrote tests for the most cases I could think of.
