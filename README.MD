@@ -9,8 +9,7 @@ There are no checks for special cases that can happen on other architectures.
 
 I benchmarked the code on two different machines:
 
-- AMD Ryzen 5 3600X (12 cores)
-- AMD Ryzen 9 5950X (36 cores)
+**BENCHMARK RESULTS TO BE UPDATED**
 
 The results are as follows:
 
@@ -35,5 +34,5 @@ If you think something is missing contact me or submit a PR.
 Add this to your Cargo.toml
 ```toml
 [dependencies]
-eta-algorithms = "1.0.0"
+eta-algorithms = "1.0.2"
 ```
