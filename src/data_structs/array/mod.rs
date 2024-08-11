@@ -59,10 +59,17 @@ impl<T> Array<T> {
         T: Copy,
     {
         let mut arr = Self::new(capacity);
-        for i in arr.iter_mut() {
-            *i = default;
-        }
+        arr.fill(default);
         arr
+    }
+
+    pub fn fill(&mut self, value: T)
+    where
+        T: Copy,
+    {
+        for i in self.iter_mut() {
+            *i = value;
+        }
     }
     #[inline(always)]
     pub fn iter(&self) -> iterator::ArrayIterator<T> {
