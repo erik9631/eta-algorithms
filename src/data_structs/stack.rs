@@ -15,11 +15,11 @@ pub struct Stack<T> {
 impl<T> Stack<T> {
     #[inline(always)]
     pub fn capacity(&self) -> usize {
-        return self.capacity;
+        self.capacity
     }
     #[inline(always)]
     pub fn len(&self) -> usize {
-        return self.len;
+        self.len
     }
     pub fn new(capacity: usize) -> Self {
         let layout = Layout::array::<T>(capacity).expect("Failed to create layout");
@@ -28,14 +28,14 @@ impl<T> Stack<T> {
             panic!("Failed to allocate memory");
         }
 
-        return Stack {
+        Stack {
             capacity,
             layout,
             data,
             len: 0,
             top: unsafe{data.offset(-1)},
-            end: unsafe { data.offset(capacity as isize) },
-        };
+            end: unsafe { data.add(capacity) },
+        }
     }
 
     pub fn extend(&mut self, new_capacity: usize) {
@@ -107,7 +107,7 @@ impl<T> Index<isize> for Stack<T> {
             panic!("Index out of bounds");
         }
 
-        if index <= self.len as isize * -1{
+        if index <= -(self.len as isize){
             panic!("Index out of bounds");
         }
 
@@ -123,7 +123,7 @@ impl<T> IndexMut<isize> for Stack<T>{
             panic!("Index out of bounds");
         }
 
-        if index < self.len as isize * -1{
+        if index < -(self.len as isize){
             panic!("Index out of bounds");
         }
 

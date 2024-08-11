@@ -15,7 +15,7 @@ pub struct Array<T> {
 impl<T> Array<T> {
     #[inline(always)]
     pub fn capacity(&self) -> usize {
-        return self.capacity;
+        self.capacity
     }
 
     pub fn extend(&mut self, new_capacity: usize){
@@ -39,19 +39,19 @@ impl<T> Array<T> {
         if data.is_null(){
             panic!("Failed to allocate memory");
         }
-        return Array {
+        Array {
             phantom_data: PhantomData,
             layout,
             data,
             capacity,
-        };
+        }
     }
 
     #[inline(always)]
     pub fn new_default_bytes(capacity: usize, default: u8) -> Self {
         let arr = Self::new(capacity);
         unsafe{ptr::write_bytes(arr.data, default, capacity)};
-        return arr;
+        arr
     }
     #[inline(always)]
     pub fn new_with_default(capacity: usize, default: T) -> Self
@@ -62,23 +62,23 @@ impl<T> Array<T> {
         for i in arr.iter_mut() {
             *i = default;
         }
-        return arr;
+        arr
     }
     #[inline(always)]
     pub fn iter(&self) -> iterator::ArrayIterator<T> {
-        return iterator::ArrayIterator {
+        iterator::ArrayIterator {
             phantom_data: &self.phantom_data,
             data: self.data,
-            end: unsafe { self.data.offset(self.capacity as isize) },
-        };
+            end: unsafe { self.data.add(self.capacity) },
+        }
     }
     #[inline(always)]
     pub fn iter_mut(&mut self) -> iterator::ArrayIteratorMut<T> {
-        return iterator::ArrayIteratorMut {
+        iterator::ArrayIteratorMut {
             phantom_data: &mut self.phantom_data,
             data: self.data,
-            end: unsafe { self.data.offset(self.capacity as isize) },
-        };
+            end: unsafe { self.data.add(self.capacity) },
+        }
     }
 
     pub fn as_slice(&self) -> &[T] {
@@ -96,7 +96,7 @@ impl<T> Array<T> {
         let new_data = unsafe{self.data.add(index)};
         let left = unsafe{std::slice::from_raw_parts(self.data, index)};
         let right = unsafe{std::slice::from_raw_parts(new_data, self.capacity - index)};
-        return (left, right);
+        (left, right)
     }
 
     pub fn split_at_mut(&mut self, index: usize) -> (&mut [T], &mut [T]) {
@@ -106,7 +106,7 @@ impl<T> Array<T> {
         let new_data = unsafe{self.data.add(index)};
         let left = unsafe{std::slice::from_raw_parts_mut(self.data, index)};
         let right = unsafe{std::slice::from_raw_parts_mut(new_data, self.capacity - index)};
-        return (left, right);
+        (left, right)
     }
 
     pub fn split_into_parts(&self, parts: usize) -> Array<&[T]>{
@@ -130,7 +130,7 @@ impl<T> Array<T> {
 
         arr[parts - 1] = unsafe{std::slice::from_raw_parts(ptr, chunk_size + remainder)};
 
-        return arr;
+        arr
     }
     pub fn split_into_parts_mut(&mut self, parts: usize) -> Array<&mut[T]>{
         if parts >= self.capacity {
@@ -153,7 +153,7 @@ impl<T> Array<T> {
 
         arr[parts - 1] = unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size + remainder)};
 
-        return arr;
+        arr
     }
 }
 
@@ -176,7 +176,7 @@ impl<T> Index<usize> for Array<T>{
         }
 
         unsafe {
-            return &*self.data.offset(index as isize);
+            &*self.data.add(index)
         }
     }
 }
@@ -188,7 +188,7 @@ impl<T> IndexMut<usize> for Array<T>{
             panic!("Index out of bounds");
         }
         unsafe {
-            return &mut *self.data.offset(index as isize);
+            &mut *self.data.add(index)
         }
     }
 }

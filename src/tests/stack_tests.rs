@@ -124,7 +124,7 @@ pub fn top_mut_test(){
 
 #[test]
 pub fn empty_top_test(){
-    let mut stack = Stack::<i32>::new(10);
+    let stack = Stack::<i32>::new(10);
     assert_eq!(stack.top(), None);
 }
 
@@ -173,7 +173,7 @@ pub fn test_stack_pop_empty() {
 
 #[test]
 pub fn test_stack_top_empty() {
-    let mut stack = Stack::<i32>::new(10);
+    let stack = Stack::<i32>::new(10);
     assert_eq!(stack.top(), None);
 }
 #[test]

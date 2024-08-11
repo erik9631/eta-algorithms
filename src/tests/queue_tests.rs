@@ -2,7 +2,7 @@ use crate::data_structs::queue::Queue;
 
 #[test]
 pub fn test_queue_init(){
-    let mut queue = Queue::<i32>::new_pow2_sized(10);
+    let queue = Queue::<i32>::new_pow2_sized(10);
     assert_eq!(queue.capacity(), 16);
     assert_eq!(queue.len(), 0);
 }
@@ -93,7 +93,7 @@ pub fn dequeue_empty_test(){
 
 #[test]
 pub fn test_queue_front_empty(){
-    let mut queue = Queue::<i32>::new_pow2_sized(10);
+    let queue = Queue::<i32>::new_pow2_sized(10);
     assert_eq!(queue.front(), None);
 }
 

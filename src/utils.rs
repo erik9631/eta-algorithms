@@ -1,11 +1,11 @@
 #[inline(always)]
 pub fn rotate_inc(val: usize, mask: usize) -> usize{
-    return (val + 1) & mask;
+    (val + 1) & mask
 }
 
 #[inline(always)]
 pub fn rotate_dec(val: usize, mask: usize) -> usize{
-    return (val - 1) & mask;
+    (val - 1) & mask
 }
 
 #[inline(always)]
@@ -19,5 +19,5 @@ pub fn closest_pow2(mut n: usize) -> usize {
     n |= n >> 8;
     n |= n >> 16;
     n |= n >> 32;
-    return n + 1
+    n + 1
 }

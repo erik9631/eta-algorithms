@@ -19,14 +19,14 @@ impl<T> Queue<T> {
             panic!("Failed to allocate memory");
         }
 
-        return Queue {
+        Queue {
             pow2_capacity,
             layout,
             data,
             len: 0,
             front: 0,
             end: 0,
-        };
+        }
     }
 
     pub fn extend_pow2_sized(&mut self, capacity_pow: usize) {
@@ -70,15 +70,15 @@ impl<T> Queue<T> {
             return;
         }
         let new_capacity = closest_pow2(self.pow2_capacity + capacity_pow);
-        return self.extend_pow2_sized(new_capacity);
+        self.extend_pow2_sized(new_capacity)
     }
     #[inline(always)]
     pub fn capacity(&self) -> usize {
-        return self.pow2_capacity;
+        self.pow2_capacity
     }
     #[inline(always)]
     pub fn len(&self) -> usize {
-        return self.len;
+        self.len
     }
 
     #[inline(always)]
