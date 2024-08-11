@@ -38,6 +38,11 @@ impl<T> Stack<T> {
         }
     }
 
+    #[inline(always)]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
     pub fn extend(&mut self, new_capacity: usize) {
         let new_layout = Layout::array::<T>(new_capacity).expect("Failed to create layout");
         unsafe {

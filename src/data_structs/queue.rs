@@ -29,6 +29,11 @@ impl<T> Queue<T> {
         }
     }
 
+    #[inline(always)]
+    pub fn is_empty(&self) -> bool {
+        self.len == 0
+    }
+
     pub fn extend_pow2_sized(&mut self, capacity_pow: usize) {
         let new_capacity = closest_pow2(capacity_pow);
         if new_capacity <= self.pow2_capacity {
