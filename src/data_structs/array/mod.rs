@@ -47,9 +47,21 @@ impl<T> Array<T> {
         };
     }
 
+    #[inline(always)]
     pub fn new_default_bytes(capacity: usize, default: u8) -> Self {
         let arr = Self::new(capacity);
         unsafe{ptr::write_bytes(arr.data, default, capacity)};
+        return arr;
+    }
+    #[inline(always)]
+    pub fn new_with_default(capacity: usize, default: T) -> Self
+    where
+        T: Copy,
+    {
+        let mut arr = Self::new(capacity);
+        for i in arr.iter_mut() {
+            *i = default;
+        }
         return arr;
     }
     #[inline(always)]

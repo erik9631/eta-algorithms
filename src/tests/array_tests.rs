@@ -328,3 +328,12 @@ pub fn split_into_parts_too_large() {
     // This should panic
     array.split_into_parts(11);
 }
+
+#[test]
+pub fn new_with_default_test() {
+    let array = Array::<i32>::new_with_default(10, 123456);
+    assert_eq!(array.capacity(), 10);
+    for i in 0..10 {
+        assert_eq!(array[i], 123456);
+    }
+}
