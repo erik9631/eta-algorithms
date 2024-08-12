@@ -9,3 +9,18 @@ license = "MIT"
 [profile.test]
 debug = true
 inherits = "release"
+
+[dev-dependencies]
+criterion = { version = "0.5.1", features = ["html_reports"] }
+
+[[bench]]
+name = "array"
+harness = false
+
+[[bench]]
+name = "stack"
+harness = false
+
+[[bench]]
+name = "queue"
+harness = false
