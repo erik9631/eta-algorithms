@@ -33,6 +33,14 @@ impl<T> Array<T> {
         self.extend(self.capacity + additional_capacity);
     }
 
+    pub fn as_ptr(&self) -> *const T {
+        self.data
+    }
+
+    pub fn as_mut_ptr(&mut self) -> *mut T {
+        self.data
+    }
+
     pub fn new(capacity: usize) -> Self {
         let layout = Layout::array::<T>(capacity).expect("Failed to create layout");
         let data = unsafe { std::alloc::alloc(layout) as *mut T };
