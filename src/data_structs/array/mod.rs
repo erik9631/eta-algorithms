@@ -186,6 +186,14 @@ where
         arr.push(unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size + remainder)});
         arr
     }
+    pub unsafe fn index_unchecked(&self, index: usize) -> &T {
+         self.data.add(index).as_ref().unwrap()
+    }
+
+    pub unsafe fn index_unchecked_mut(&mut self, index: usize) -> &mut T {
+        self.data.add(index).as_mut().unwrap()
+    }
+
 }
 
 
