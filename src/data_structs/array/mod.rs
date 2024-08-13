@@ -1,4 +1,5 @@
 use std::alloc::{Layout, realloc};
+use std::cmp::min;
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 use std::ptr;
@@ -113,12 +114,30 @@ where
         }
     }
 
+    #[inline(always)]
+    pub fn iter_range(&self, start: usize, end: usize) -> iterator::ArrayIterator<T> {
+        iterator::ArrayIterator {
+            phantom_data: &self.phantom_data,
+            data: unsafe{self.data.add(start)},
+            end: unsafe{min(self.data.add(start + end), self.data.add(self.capacity))},
+        }
+    }
+
+    #[inline(always)]
+    pub fn iter_range_mut(&mut self, start: usize, end: usize) -> iterator::ArrayIteratorMut<T> {
+        iterator::ArrayIteratorMut {
+            phantom_data: &mut self.phantom_data,
+            data: unsafe{self.data.add(start)},
+            end: unsafe{min(self.data.add(start + end), self.data.add(self.capacity))},
+        }
+    }
+
     pub fn as_slice(&self) -> &[T] {
-        return unsafe{std::slice::from_raw_parts(self.data, self.capacity)};
+        unsafe{std::slice::from_raw_parts(self.data, self.capacity)}
     }
 
     pub fn as_slice_mut(&mut self) -> &mut [T] {
-        return unsafe{std::slice::from_raw_parts_mut(self.data, self.capacity)};
+        unsafe{std::slice::from_raw_parts_mut(self.data, self.capacity)}
     }
 
     pub fn split_at(&mut self, index: usize) -> (&[T], &[T]) {

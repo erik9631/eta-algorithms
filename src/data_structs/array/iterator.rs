@@ -30,15 +30,15 @@ macro_rules! impl_iterator {
         {
             type Item = $item;
             fn next(&mut self) -> Option<Self::Item> {
-                if self.data == self.end {
-                    None
-                } else {
-                    unsafe {
-                        let item = (self.data).$mutability().unwrap();
-                        self.data = self.data.offset(1);
-                        Some(item)
-                    }
+                if self.data >= self.end {
+                    return None
                 }
+                unsafe {
+                    let item = (self.data).$mutability().unwrap();
+                    self.data = self.data.offset(1);
+                    Some(item)
+                }
+
             }
         }
     };
