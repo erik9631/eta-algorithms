@@ -2,7 +2,10 @@ use std::alloc::{dealloc, Layout, realloc};
 use std::ptr;
 use crate::utils::{closest_pow2, rotate_inc};
 
-pub struct Queue<T>{
+pub struct Queue<T>
+where
+    T: Copy + Sized,
+{
     pow2_capacity: usize,
     len: usize,
     layout: Layout,
@@ -10,7 +13,10 @@ pub struct Queue<T>{
     front: usize,
     end: usize,
 }
-impl<T> Queue<T> {
+impl<T> Queue<T>
+where
+    T: Copy + Sized,
+{
     pub fn new_pow2_sized(capacity: usize) -> Self {
         let pow2_capacity = closest_pow2(capacity);
         let layout = Layout::array::<T>(pow2_capacity).expect("Failed to create layout");
@@ -129,7 +135,10 @@ impl<T> Queue<T> {
     }
 }
 
-impl<T> Drop for Queue<T> {
+impl<T> Drop for Queue<T>
+where
+    T: Copy + Sized,
+{
     fn drop(&mut self) {
         unsafe {
             dealloc(self.data as *mut u8, self.layout);

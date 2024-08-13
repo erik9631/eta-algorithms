@@ -195,10 +195,10 @@ pub fn test_stack_multiple_extend() {
 
 #[test]
 pub fn test_stack_with_non_copy_type() {
-    let mut stack = Stack::<String>::new(5);
-    stack.push("Hello".to_string());
-    stack.push("World".to_string());
-    assert_eq!(stack.pop(), Some("World".to_string()));
-    assert_eq!(stack.pop(), Some("Hello".to_string()));
+    let mut stack = Stack::<&str>::new(5);
+    stack.push("Hello");
+    stack.push("World");
+    assert_eq!(stack.pop(), Some("World"));
+    assert_eq!(stack.pop(), Some("Hello"));
     assert_eq!(stack.pop(), None);
 }

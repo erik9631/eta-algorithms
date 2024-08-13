@@ -2,7 +2,10 @@ use std::alloc::{Layout, realloc};
 use std::ops::{Index, IndexMut};
 use std::ptr;
 
-pub struct Stack<T> {
+pub struct Stack<T>
+where
+    T: Copy + Sized,
+{
     capacity: usize,
     len: usize,
     layout: Layout,
@@ -12,7 +15,10 @@ pub struct Stack<T> {
 
 }
 
-impl<T> Stack<T> {
+impl<T> Stack<T>
+where
+    T: Copy + Sized,
+{
     #[inline(always)]
     pub fn capacity(&self) -> usize {
         self.capacity
@@ -104,7 +110,10 @@ impl<T> Stack<T> {
     }
 }
 
-impl<T> Index<isize> for Stack<T> {
+impl<T> Index<isize> for Stack<T>
+where
+    T: Copy + Sized,
+{
     type Output = T;
     #[inline(always)]
     fn index(&self, index: isize) -> &Self::Output {
@@ -121,7 +130,10 @@ impl<T> Index<isize> for Stack<T> {
     }
 }
 
-impl<T> IndexMut<isize> for Stack<T>{
+impl<T> IndexMut<isize> for Stack<T>
+where
+    T: Copy + Sized,
+{
     #[inline(always)]
     fn index_mut(&mut self, index: isize) -> &mut Self::Output {
         if index > 0{
@@ -137,7 +149,10 @@ impl<T> IndexMut<isize> for Stack<T>{
     }
 }
 
-impl<T> Drop for Stack<T> {
+impl<T> Drop for Stack<T>
+where
+    T: Copy + Sized,
+{
     fn drop(&mut self) {
         unsafe {
             std::alloc::dealloc(self.data as *mut u8, self.layout);

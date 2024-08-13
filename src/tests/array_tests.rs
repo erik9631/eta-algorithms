@@ -337,3 +337,16 @@ pub fn new_with_default_test() {
         assert_eq!(array[i], 123456);
     }
 }
+
+#[test]
+pub fn clone_test() {
+    let mut array = Array::<i32>::new(10);
+    for i in 0..10 {
+        array[i] = i as i32;
+    }
+    let array2 = array.clone();
+    assert_eq!(array2.capacity(), 10);
+    for i in 0..10 {
+        assert_eq!(array2[i], i as i32);
+    }
+}

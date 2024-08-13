@@ -2,22 +2,39 @@ use std::alloc::{Layout, realloc};
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
 use std::ptr;
+use std::ptr::copy_nonoverlapping;
 
 pub mod iterator;
 
-pub struct Array<T> {
+pub struct Array<T>
+where
+    T: Copy + Sized,
+{
     phantom_data: PhantomData<T>, // For compile time borrow checking correctness
     layout: Layout,
     data: *mut T,
     capacity: usize,
 }
 
-impl<T> Array<T> {
+impl <T> Clone for Array<T>
+where
+        T: Copy + Sized
+{
+    fn clone(&self) -> Self {
+        let array = Self::new(self.capacity);
+        unsafe{copy_nonoverlapping(self.data, array.data, self.capacity)}
+        array
+    }
+}
+
+impl<T> Array<T>
+where
+    T: Copy + Sized
+{
     #[inline(always)]
     pub fn capacity(&self) -> usize {
         self.capacity
     }
-
     pub fn extend(&mut self, new_capacity: usize){
         let new_layout = Layout::array::<T>(new_capacity).expect("Failed to create layout");
         let new_ptr = unsafe{realloc(self.data as *mut u8, new_layout, new_layout.size())};
@@ -147,7 +164,7 @@ impl<T> Array<T> {
 
         arr
     }
-    pub fn split_into_parts_mut(&mut self, parts: usize) -> Array<&mut[T]>{
+    pub fn split_into_parts_mut(&mut self, parts: usize) -> Vec<&mut[T]> {
         if parts >= self.capacity {
             panic!("Parts must be less than or equal to the capacity of the array");
         }
@@ -159,21 +176,24 @@ impl<T> Array<T> {
         let chunk_size = self.capacity / parts;
         let remainder = self.capacity % parts;
 
-        let mut arr = Array::<&mut [T]>::new(parts);
+        let mut arr = Vec::<&mut [T]>::with_capacity(parts);
         let mut ptr = self.data;
         for i in 0..parts - 1 {
-            arr[i] = unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size)};
+            arr.push(unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size)});
             ptr = unsafe{ptr.add(chunk_size)};
         }
 
-        arr[parts - 1] = unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size + remainder)};
-
+        arr.push(unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size + remainder)});
         arr
     }
 }
 
 
-impl<T> Drop for Array<T>{
+impl<T> Drop for Array<T>
+where
+    T: Copy + Sized,
+{
+
     fn drop(&mut self) {
         unsafe {
             std::alloc::dealloc(self.data as *mut u8, self.layout);
@@ -181,7 +201,10 @@ impl<T> Drop for Array<T>{
     }
 }
 
-impl<T> Index<usize> for Array<T>{
+impl<T> Index<usize> for Array<T>
+where
+    T: Copy + Sized,
+{
     type Output = T;
 
     #[inline(always)]
@@ -196,7 +219,10 @@ impl<T> Index<usize> for Array<T>{
     }
 }
 
-impl<T> IndexMut<usize> for Array<T>{
+impl<T> IndexMut<usize> for Array<T>
+where
+    T: Copy + Sized,
+{
     #[inline(always)]
     fn index_mut(&mut self, index: usize) -> &mut Self::Output {
         if index >= self.capacity {
