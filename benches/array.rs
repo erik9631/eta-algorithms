@@ -9,7 +9,7 @@ fn benchmark_array(initial_size: usize, data_size: usize){
     let mut current_size = initial_size;
 
     // Push
-    for i in 0..data_size {
+    for _ in 0..data_size {
         if custom_len == current_size {
             current_size *= 2;
             custom_array.extend(current_size);
@@ -30,7 +30,6 @@ fn benchmark_vec(initial_size: usize, data_size: usize) {
 
     // Benchmark Vec
     let mut vec = Vec::with_capacity(initial_size);
-    let start = Instant::now();
 
     // Push
     for i in 0..data_size {

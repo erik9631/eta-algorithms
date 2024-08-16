@@ -13,7 +13,7 @@ fn stack_benchmark(data_size: usize){
     }
     let mut sum = 0;
 
-    for i in 0..data_size {
+    for _ in 0..data_size {
         sum += stack.pop().unwrap();
     }
     black_box(sum);
@@ -26,7 +26,7 @@ pub fn vec_stack_benchmark(data_size: usize){
     }
 
     let mut sum = 0;
-    for i in 0..data_size {
+    for _ in 0..data_size {
         sum += vec_stack.pop().unwrap();
     }
     black_box(sum);

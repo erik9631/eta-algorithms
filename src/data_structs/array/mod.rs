@@ -197,7 +197,7 @@ where
 
         let mut arr = Vec::<&mut [T]>::with_capacity(parts);
         let mut ptr = self.data;
-        for i in 0..parts - 1 {
+        for _ in 0..parts - 1 {
             arr.push(unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size)});
             ptr = unsafe{ptr.add(chunk_size)};
         }

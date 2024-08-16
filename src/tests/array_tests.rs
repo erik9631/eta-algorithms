@@ -397,7 +397,7 @@ pub fn iter_range_mut_out_of_bounds_test() {
         array[i] = i as i32;
     }
     let iter = array.iter_range_mut(2, 13);
-    for (i, item) in iter.enumerate() {
+    for item in iter {
         *item = 100;
     }
     for item in array.iter_range(2, 13) {
