@@ -357,7 +357,7 @@ pub fn iter_range_test() {
     for i in 0..10 {
         array[i] = i as i32;
     }
-    let mut iter = array.iter_range(2, 5);
+    let iter = array.iter_range(2, 5);
     for (i, item) in iter.enumerate() {
         assert_eq!(*item, i as i32 + 2);
     }
@@ -369,8 +369,8 @@ pub fn iter_range_mut_test() {
     for i in 0..10 {
         array[i] = i as i32;
     }
-    let mut iter = array.iter_range_mut(2, 5);
-    for (i, item) in iter.enumerate() {
+    let iter = array.iter_range_mut(2, 5);
+    for item in iter {
         *item = 100;
     }
     for item in array.iter_range(2, 5){

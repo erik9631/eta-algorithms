@@ -6,7 +6,7 @@ pub struct Queue<T>
 where
     T: Copy + Sized,
 {
-    pow2_capacity: usize,
+    capacity: usize,
     len: usize,
     layout: Layout,
     data: *mut T,
@@ -18,15 +18,15 @@ where
     T: Copy + Sized,
 {
     pub fn new_pow2_sized(capacity: usize) -> Self {
-        let pow2_capacity = closest_pow2(capacity);
-        let layout = Layout::array::<T>(pow2_capacity).expect("Failed to create layout");
+        let capacity = closest_pow2(capacity);
+        let layout = Layout::array::<T>(capacity).expect("Failed to create layout");
         let data = unsafe { std::alloc::alloc(layout) as *mut T };
         if data.is_null() {
             panic!("Failed to allocate memory");
         }
 
         Queue {
-            pow2_capacity,
+            capacity,
             layout,
             data,
             len: 0,
@@ -42,7 +42,7 @@ where
 
     pub fn extend_pow2_sized(&mut self, capacity_pow: usize) {
         let new_capacity = closest_pow2(capacity_pow);
-        if new_capacity <= self.pow2_capacity {
+        if new_capacity <= self.capacity {
             panic!("New capacity is less than or equal to current capacity");
         }
 
@@ -59,7 +59,7 @@ where
             unsafe { ptr::copy_nonoverlapping(self.data, new_data.add(from_front_to_array_end_len), from_start_to_end_len) }; // Before Front
 
             unsafe { dealloc(self.data as *mut u8, self.layout) };
-            self.pow2_capacity = new_capacity;
+            self.capacity = new_capacity;
             self.data = new_data;
             self.front = 0;
             self.end = from_front_to_array_end_len + from_start_to_end_len;
@@ -71,21 +71,21 @@ where
             if self.data.is_null() {
                 panic!("Failed to reallocate memory");
             }
-            self.pow2_capacity = new_capacity;
+            self.capacity = new_capacity;
         }
 
     }
     #[inline(always)]
     pub fn extend_pow2_sized_by(&mut self, capacity_pow: usize) {
-        if self.pow2_capacity < self.pow2_capacity + capacity_pow {
+        if self.capacity < self.capacity + capacity_pow {
             return;
         }
-        let new_capacity = closest_pow2(self.pow2_capacity + capacity_pow);
+        let new_capacity = closest_pow2(self.capacity + capacity_pow);
         self.extend_pow2_sized(new_capacity)
     }
     #[inline(always)]
     pub fn capacity(&self) -> usize {
-        self.pow2_capacity
+        self.capacity
     }
     #[inline(always)]
     pub fn len(&self) -> usize {
@@ -94,13 +94,13 @@ where
 
     #[inline(always)]
     pub fn push(&mut self, value: T) {
-        if self.len == self.pow2_capacity {
+        if self.len == self.capacity {
             panic!("Queue is full");
         }
         unsafe {
             self.data.add(self.end).write(value);
             self.len += 1;
-            self.end = rotate_inc(self.end, self.pow2_capacity - 1);
+            self.end = rotate_inc(self.end, self.capacity - 1);
         }
     }
     #[inline(always)]
@@ -129,7 +129,7 @@ where
         unsafe {
             let result = Some(self.data.add(self.front).read());
             self.len -= 1;
-            self.front = rotate_inc(self.front, self.pow2_capacity - 1);
+            self.front = rotate_inc(self.front, self.capacity - 1);
             result
         }
     }
