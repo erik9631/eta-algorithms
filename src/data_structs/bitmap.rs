@@ -48,15 +48,15 @@ impl Bitmap
             layout
         }
     }
-
+    #[inline(always)]
     pub fn bit_capacity(&self) -> usize {
         self.bit_capacity
     }
-
+    #[inline(always)]
     pub fn capacity(&self) -> usize {
         self.capacity
     }
-
+    #[inline(always)]
     pub fn set(&mut self, bit_index: usize, value: bool) {
         if bit_index >= self.bit_capacity {
             panic!("Bit index out of bounds");
@@ -69,7 +69,7 @@ impl Bitmap
             *ptr = (*ptr & !(1 << bit_offset)) | ((value as usize) << bit_offset);
         }
     }
-
+    #[inline(always)]
     pub fn get(&self, bit_index: usize) -> Option<bool> {
         if bit_index >= self.bit_capacity {
             return None;
@@ -82,7 +82,7 @@ impl Bitmap
             Some((*ptr & (1 << bit_offset)) != 0)
         }
     }
-
+    #[inline(always)]
     pub unsafe fn set_unchecked(&mut self, bit_index: usize, value: bool) {
         let offset = bit_index >> DIV_SHIFT;
         let bit_offset = bit_index & (MASK);
@@ -91,7 +91,7 @@ impl Bitmap
             *ptr = (*ptr & !(1 << bit_offset)) | ((value as usize) << bit_offset);
         }
     }
-
+    #[inline(always)]
     pub unsafe fn get_unchecked(&self, bit_index: usize) -> bool {
         let offset = bit_index >> DIV_SHIFT;
         let bit_offset = bit_index & (MASK);
