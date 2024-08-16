@@ -1,5 +1,4 @@
 use std::collections::VecDeque;
-use std::time::Instant;
 use criterion::{black_box, Criterion, criterion_group, criterion_main};
 use eta_algorithms::data_structs::queue::Queue;
 

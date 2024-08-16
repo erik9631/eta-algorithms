@@ -384,7 +384,7 @@ pub fn iter_range_out_of_bounds_test() {
     for i in 0..10 {
         array[i] = i as i32;
     }
-    let mut iter = array.iter_range(2, 11);
+    let iter = array.iter_range(2, 11);
     for (i, item) in iter.enumerate() {
         assert_eq!(*item, i as i32 + 2);
     }
@@ -396,7 +396,7 @@ pub fn iter_range_mut_out_of_bounds_test() {
     for i in 0..10 {
         array[i] = i as i32;
     }
-    let mut iter = array.iter_range_mut(2, 13);
+    let iter = array.iter_range_mut(2, 13);
     for (i, item) in iter.enumerate() {
         *item = 100;
     }

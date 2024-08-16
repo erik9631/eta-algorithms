@@ -2,15 +2,15 @@ use crate::data_structs::bitmap::Bitmap;
 
 #[test]
 fn bitmap_init_test(){
-    let mut bitmap = Bitmap::new(10);
+    let bitmap = Bitmap::new(10);
     assert_eq!(bitmap.bit_capacity(), 10);
     assert_eq!(bitmap.capacity(), 1);
 
-    let mut bitmap = Bitmap::new(100);
+    let bitmap = Bitmap::new(100);
     assert_eq!(bitmap.bit_capacity(), 100);
     assert_eq!(bitmap.capacity(), 2);
 
-    let mut bitmap = Bitmap::new(1000);
+    let bitmap = Bitmap::new(1000);
     assert_eq!(bitmap.bit_capacity(), 1000);
     assert_eq!(bitmap.capacity(), 16);
 }
@@ -82,12 +82,12 @@ fn bitmap_set_get_test_unchecked(){
         bitmap.set_unchecked(1, true);
         bitmap.set_unchecked(2, true);
 
-        assert_eq!(bitmap.get_unchecked(0), false);
-        assert_eq!(bitmap.get_unchecked(1), true);
-        assert_eq!(bitmap.get_unchecked(2), true);
+        assert!(!bitmap.get_unchecked(0));
+        assert!(bitmap.get_unchecked(1));
+        assert!(bitmap.get_unchecked(2));
 
         for i in 3..10{
-            assert_eq!(bitmap.get_unchecked(i), false);
+            assert!(!bitmap.get_unchecked(i));
         }
     }
 }
