@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct FatPtrMut<T> {
     pub ptr: *mut T,
     pub end: *mut T,
@@ -35,6 +36,7 @@ impl<T> FatPtrMut<T> {
 }
 
 
+#[derive(Copy, Clone)]
 pub struct FatPtr<T> {
     pub ptr: *const T,
     pub end: *const T,
