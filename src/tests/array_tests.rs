@@ -404,3 +404,35 @@ pub fn iter_range_mut_out_of_bounds_test() {
         assert_eq!(*item, 100);
     }
 }
+
+#[test]
+fn multiple_unchecked_iter_range_mut_test() {
+    let mut array = Array::<i32>::new(10);
+    for i in 0..10 {
+        array[i] = i as i32;
+    }
+    let mut iter1 = unsafe { array.iter_range_mut_unchecked(0, 3) };
+    let mut iter2 = unsafe { array.iter_range_mut_unchecked(3, 5) };
+    let mut iter3 = unsafe { array.iter_range_mut_unchecked(5, 10) };
+
+    for item in iter1 {
+        *item = 100;
+    }
+    for item in iter2 {
+        *item = 200;
+    }
+    for item in iter3 {
+        *item = 300;
+    }
+
+    for item in array.iter_range(0, 2) {
+        assert_eq!(*item, 100);
+    }
+    for item in array.iter_range(3, 5) {
+        assert_eq!(*item, 200);
+    }
+    for item in array.iter_range(6, 9) {
+        assert_eq!(*item, 300);
+    }
+
+}

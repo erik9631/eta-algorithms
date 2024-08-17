@@ -5,7 +5,7 @@ where
     T: Copy + Sized,
 {
     #[allow(dead_code)]
-    pub(crate) phantom_data: &'a PhantomData<T>,
+    pub(crate) phantom_data: &'a PhantomData<()>,
     pub(crate)data: *mut T,
     pub(crate)end: *mut T,
 }
@@ -15,7 +15,7 @@ where
     T: Copy + Sized,
 {
     #[allow(dead_code)]
-    pub(crate)phantom_data: &'a mut PhantomData<T>,
+    pub(crate)phantom_data: &'a mut PhantomData<()>,
     pub(crate)data: *mut T,
     pub(crate)end: *mut T,
 }
@@ -24,7 +24,7 @@ where
 
 macro_rules! impl_iterator {
     ($name:ident; $item:ty; $mutability:tt) => {
-        impl<'a, T> Iterator for $name<'a, T>
+        impl<'a, T:'a> Iterator for $name<'a, T>
         where
             T: Copy + Sized,
         {

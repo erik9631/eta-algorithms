@@ -1,6 +1,7 @@
 use std::alloc::{Layout, realloc};
 use std::cmp::min;
 use std::marker::PhantomData;
+use std::mem::transmute;
 use std::ops::{Index, IndexMut};
 use std::ptr;
 use std::ptr::copy_nonoverlapping;
@@ -11,7 +12,7 @@ pub struct Array<T>
 where
     T: Copy + Sized,
 {
-    phantom_data: PhantomData<T>, // For compile time borrow checking correctness
+    phantom_data: PhantomData<()>, // For compile time borrow checking correctness
     layout: Layout,
     data: *mut T,
     capacity: usize,
@@ -119,7 +120,7 @@ where
         iterator::ArrayIterator {
             phantom_data: &self.phantom_data,
             data: unsafe{self.data.add(start)},
-            end: unsafe{min(self.data.add(start + end), self.data.add(self.capacity))},
+            end: unsafe{min(self.data.add(end), self.data.add(self.capacity))},
         }
     }
 
@@ -128,9 +129,23 @@ where
         iterator::ArrayIteratorMut {
             phantom_data: &mut self.phantom_data,
             data: unsafe{self.data.add(start)},
-            end: unsafe{min(self.data.add(start + end), self.data.add(self.capacity))},
+            end: unsafe{min(self.data.add(end), self.data.add(self.capacity))},
         }
     }
+
+    /// Extremely unsafe as it bypasses lifetime checks. Use if you know what you are doing.
+    /// This is good for cases where you need dynamically retrieve multiple mutable iterators to chunks of non-overlapping data.
+    #[inline(always)]
+    pub unsafe fn iter_range_mut_unchecked(&mut self, start: usize, end: usize) -> iterator::ArrayIteratorMut<'static, T> {
+        static mut PHANTOM: PhantomData<()> = PhantomData;
+        iterator::ArrayIteratorMut {
+            phantom_data: &mut PHANTOM,
+            data: unsafe{self.data.add(start)},
+            end: unsafe{min(self.data.add(end), self.data.add(self.capacity))},
+        }
+    }
+
+
 
     pub fn as_slice(&self) -> &[T] {
         unsafe{std::slice::from_raw_parts(self.data, self.capacity)}
