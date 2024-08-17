@@ -1,10 +1,9 @@
 use std::alloc::{Layout, realloc};
 use std::cmp::min;
 use std::marker::PhantomData;
-use std::mem::transmute;
 use std::ops::{Index, IndexMut};
 use std::ptr;
-use std::ptr::copy_nonoverlapping;
+use std::ptr::{addr_of_mut, copy_nonoverlapping};
 
 pub mod iterator;
 
@@ -139,7 +138,7 @@ where
     pub unsafe fn iter_range_mut_unchecked(&mut self, start: usize, end: usize) -> iterator::ArrayIteratorMut<'static, T> {
         static mut PHANTOM: PhantomData<()> = PhantomData;
         iterator::ArrayIteratorMut {
-            phantom_data: &mut PHANTOM,
+            phantom_data: &mut *addr_of_mut!(PHANTOM),
             data: unsafe{self.data.add(start)},
             end: unsafe{min(self.data.add(end), self.data.add(self.capacity))},
         }
@@ -151,7 +150,7 @@ where
         unsafe{std::slice::from_raw_parts(self.data, self.capacity)}
     }
 
-    pub fn as_slice_mut(&mut self) -> &mut [T] {
+    pub fn as_mut_slice(&mut self) -> &mut [T] {
         unsafe{std::slice::from_raw_parts_mut(self.data, self.capacity)}
     }
 

@@ -411,9 +411,9 @@ fn multiple_unchecked_iter_range_mut_test() {
     for i in 0..10 {
         array[i] = i as i32;
     }
-    let mut iter1 = unsafe { array.iter_range_mut_unchecked(0, 3) };
-    let mut iter2 = unsafe { array.iter_range_mut_unchecked(3, 5) };
-    let mut iter3 = unsafe { array.iter_range_mut_unchecked(5, 10) };
+    let iter1 = unsafe { array.iter_range_mut_unchecked(0, 3) };
+    let iter2 = unsafe { array.iter_range_mut_unchecked(3, 5) };
+    let iter3 = unsafe { array.iter_range_mut_unchecked(5, 10) };
 
     for item in iter1 {
         *item = 100;

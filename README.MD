@@ -11,16 +11,22 @@ I benchmarked the code on two different machines:
 
 **BENCHMARK RESULTS TO BE UPDATED**
 
+**Tested on:** 
+
+*AMD Ryzen 9 7900X 12-Core Processor 4.70 GHz*
+
+*32GB DDR4 5200MHz*
+
 The results are as follows:
 
-| Data structure | Push time | Pop time | Sum time |
-|----------------|-----------|----------|----------|
-| Custom Array   | -         | -        | -        |
-| Vec            | -         | -        | -        |
-| Queue Custom   | -         | -        | -        |
-| Deque          | -         | -        | -        |
-| Stack Custom   | -         | -        | -        |
-| Vec Stack      | -         | -        | -        |
+| Data structure | Push time avg | Pop time avg | Sum time avg |
+|----------------|---------------|--------------|--------------|
+| Custom Array   | -             | -            | 289ms        |
+| Vec            | -             | -            | 309ms        |
+| Queue Custom   | -             | -            | 16ms         |
+| Deque          | -             | -            | 29ms         |
+| Stack Custom   | -             | -            | 16ms         |
+| Vec Stack      | -             | -            | 19ms         |
 
 ## Safety
 I wrote tests for the most cases I could think of.
