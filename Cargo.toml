@@ -4,7 +4,9 @@ version = "1.5.2"
 edition = "2021"
 authors = ["erik9631@gmail.com"]
 description = "Low overhead data structures focused on performance"
-license = "Custom MIT-Based License"
+license = "MIT-Helecz"
+readme = "README.MD"
+repository = "https://github.com/erik9631/eta-algorithms"
 
 [profile.test]
 debug = true
