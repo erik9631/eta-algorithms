@@ -1,8 +1,7 @@
-use std::time::Instant;
-use criterion::{black_box, Criterion, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use eta_algorithms::data_structs::array::Array;
 
-fn benchmark_array(initial_size: usize, data_size: usize){
+fn benchmark_array(initial_size: usize, data_size: usize) {
     // Benchmark custom Array
     let mut custom_array = Array::new(initial_size);
     let mut custom_len = 0;
@@ -27,7 +26,6 @@ fn benchmark_array(initial_size: usize, data_size: usize){
 }
 
 fn benchmark_vec(initial_size: usize, data_size: usize) {
-
     // Benchmark Vec
     let mut vec = Vec::with_capacity(initial_size);
 
@@ -46,12 +44,14 @@ fn array_vs_vec(c: &mut Criterion) {
     const INITIAL_SIZE: usize = 2;
     const DATA_SIZE: usize = 100_000_000;
     let mut group = c.benchmark_group("Array vs Vec");
-    group.bench_function("Array", |b| b.iter(|| benchmark_array(INITIAL_SIZE, DATA_SIZE)));
+    group.bench_function("Array", |b| {
+        b.iter(|| benchmark_array(INITIAL_SIZE, DATA_SIZE))
+    });
     group.bench_function("Vec", |b| b.iter(|| benchmark_vec(INITIAL_SIZE, DATA_SIZE)));
     group.finish();
 }
 
-criterion_group!{
+criterion_group! {
     name=array;
     config = Criterion::default().sample_size(50);
     targets = array_vs_vec

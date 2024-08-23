@@ -1,6 +1,6 @@
-pub mod stack;
 pub mod array;
-pub mod queue;
 pub mod bitmap;
+pub mod queue;
+pub mod stack;
 
 pub mod fat_ptr;

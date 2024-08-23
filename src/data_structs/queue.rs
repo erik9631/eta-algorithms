@@ -1,6 +1,6 @@
-use std::alloc::{dealloc, Layout, realloc};
-use std::ptr;
 use crate::utils::{closest_pow2, rotate_inc};
+use std::alloc::{dealloc, realloc, Layout};
+use std::ptr;
 
 pub struct Queue<T>
 where
@@ -13,6 +13,7 @@ where
     front: usize,
     end: usize,
 }
+
 impl<T> Queue<T>
 where
     T: Copy + Sized,
@@ -48,15 +49,27 @@ where
 
         let new_layout = Layout::array::<T>(new_capacity).expect("Failed to create layout");
         // Data can only wrap if data actually exists. We need to do len check.
-        if self.front >= self.end && self.len > 0{
+        if self.front >= self.end && self.len > 0 {
             let new_data = unsafe { std::alloc::alloc(new_layout) as *mut T };
             if new_data.is_null() {
                 panic!("Failed to allocate memory");
             }
             let from_front_to_array_end_len = self.capacity() - self.front;
             let from_start_to_end_len = self.front;
-            unsafe { ptr::copy_nonoverlapping(self.data.add(self.front), new_data, from_front_to_array_end_len) }; // After Front
-            unsafe { ptr::copy_nonoverlapping(self.data, new_data.add(from_front_to_array_end_len), from_start_to_end_len) }; // Before Front
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    self.data.add(self.front),
+                    new_data,
+                    from_front_to_array_end_len,
+                )
+            }; // After Front
+            unsafe {
+                ptr::copy_nonoverlapping(
+                    self.data,
+                    new_data.add(from_front_to_array_end_len),
+                    from_start_to_end_len,
+                )
+            }; // Before Front
 
             unsafe { dealloc(self.data as *mut u8, self.layout) };
             self.capacity = new_capacity;
@@ -73,7 +86,6 @@ where
             }
             self.capacity = new_capacity;
         }
-
     }
     #[inline(always)]
     pub fn extend_pow2_sized_by(&mut self, capacity_pow: usize) {
@@ -108,18 +120,14 @@ where
         if self.len == 0 {
             return None;
         }
-        unsafe {
-            Some(self.data.add(self.front).as_ref().unwrap())
-        }
+        unsafe { Some(self.data.add(self.front).as_ref().unwrap()) }
     }
     #[inline(always)]
     pub fn front_mut(&mut self) -> Option<&mut T> {
         if self.len == 0 {
             return None;
         }
-        unsafe {
-            Some(self.data.add(self.front).as_mut().unwrap())
-        }
+        unsafe { Some(self.data.add(self.front).as_mut().unwrap()) }
     }
     #[inline(always)]
     pub fn dequeue(&mut self) -> Option<T> {

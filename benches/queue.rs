@@ -1,8 +1,8 @@
-use std::collections::VecDeque;
-use criterion::{black_box, Criterion, criterion_group, criterion_main};
+use criterion::{black_box, criterion_group, criterion_main, Criterion};
 use eta_algorithms::data_structs::queue::Queue;
+use std::collections::VecDeque;
 
-fn custom_queue_benchmark(num_elements: usize){
+fn custom_queue_benchmark(num_elements: usize) {
     // Benchmark custom Queue
     let mut custom_queue = Queue::new_pow2_sized(num_elements);
 
@@ -18,7 +18,7 @@ fn custom_queue_benchmark(num_elements: usize){
     black_box(custom_sum);
 }
 
-fn vecdeque_benchmark(num_elements: usize){
+fn vecdeque_benchmark(num_elements: usize) {
     // Benchmark VecDeque
     let mut vec_deque = VecDeque::with_capacity(num_elements);
 
@@ -39,12 +39,14 @@ fn vecdeque_benchmark(num_elements: usize){
 fn benchmark_queue_vs_vecdeque(c: &mut Criterion) {
     const NUM_ELEMENTS: usize = 10_000_000;
     let mut group = c.benchmark_group("Queue vs VecDeque");
-    group.bench_function("Custom Queue", |b| b.iter(|| custom_queue_benchmark(NUM_ELEMENTS)));
+    group.bench_function("Custom Queue", |b| {
+        b.iter(|| custom_queue_benchmark(NUM_ELEMENTS))
+    });
     group.bench_function("VecDeque", |b| b.iter(|| vecdeque_benchmark(NUM_ELEMENTS)));
     group.finish();
 }
 
-criterion_group!{
+criterion_group! {
     name=queue;
     config = Criterion::default().sample_size(50);
     targets = benchmark_queue_vs_vecdeque

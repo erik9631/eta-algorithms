@@ -1,4 +1,4 @@
-use std::alloc::{Layout, realloc};
+use std::alloc::{realloc, Layout};
 use std::cmp::min;
 use std::marker::PhantomData;
 use std::ops::{Index, IndexMut};
@@ -17,29 +17,29 @@ where
     capacity: usize,
 }
 
-impl <T> Clone for Array<T>
+impl<T> Clone for Array<T>
 where
-        T: Copy + Sized
+    T: Copy + Sized,
 {
     fn clone(&self) -> Self {
         let array = Self::new(self.capacity);
-        unsafe{copy_nonoverlapping(self.data, array.data, self.capacity)}
+        unsafe { copy_nonoverlapping(self.data, array.data, self.capacity) }
         array
     }
 }
 
 impl<T> Array<T>
 where
-    T: Copy + Sized
+    T: Copy + Sized,
 {
     #[inline(always)]
     pub fn capacity(&self) -> usize {
         self.capacity
     }
-    pub fn extend(&mut self, new_capacity: usize){
+    pub fn extend(&mut self, new_capacity: usize) {
         let new_layout = Layout::array::<T>(new_capacity).expect("Failed to create layout");
-        let new_ptr = unsafe{realloc(self.data as *mut u8, new_layout, new_layout.size())};
-        if new_ptr.is_null(){
+        let new_ptr = unsafe { realloc(self.data as *mut u8, new_layout, new_layout.size()) };
+        if new_ptr.is_null() {
             panic!("Failed to allocate memory");
         }
         self.data = new_ptr as *mut T;
@@ -47,7 +47,7 @@ where
         self.layout = new_layout;
     }
     #[inline(always)]
-    pub fn extend_by(&mut self, additional_capacity: usize){
+    pub fn extend_by(&mut self, additional_capacity: usize) {
         self.extend(self.capacity + additional_capacity);
     }
 
@@ -62,7 +62,7 @@ where
     pub fn new(capacity: usize) -> Self {
         let layout = Layout::array::<T>(capacity).expect("Failed to create layout");
         let data = unsafe { std::alloc::alloc(layout) as *mut T };
-        if data.is_null(){
+        if data.is_null() {
             panic!("Failed to allocate memory");
         }
         Array {
@@ -76,7 +76,7 @@ where
     #[inline(always)]
     pub fn new_default_bytes(capacity: usize, default: u8) -> Self {
         let arr = Self::new(capacity);
-        unsafe{ptr::write_bytes(arr.data, default, capacity)};
+        unsafe { ptr::write_bytes(arr.data, default, capacity) };
         arr
     }
     #[inline(always)]
@@ -105,6 +105,7 @@ where
             end: unsafe { self.data.add(self.capacity) },
         }
     }
+
     #[inline(always)]
     pub fn iter_mut(&mut self) -> iterator::ArrayIteratorMut<T> {
         iterator::ArrayIteratorMut {
@@ -118,8 +119,8 @@ where
     pub fn iter_range(&self, start: usize, end: usize) -> iterator::ArrayIterator<T> {
         iterator::ArrayIterator {
             phantom_data: &self.phantom_data,
-            data: unsafe{self.data.add(start)},
-            end: unsafe{min(self.data.add(end), self.data.add(self.capacity))},
+            data: unsafe { self.data.add(start) },
+            end: unsafe { min(self.data.add(end), self.data.add(self.capacity)) },
         }
     }
 
@@ -127,40 +128,42 @@ where
     pub fn iter_range_mut(&mut self, start: usize, end: usize) -> iterator::ArrayIteratorMut<T> {
         iterator::ArrayIteratorMut {
             phantom_data: &mut self.phantom_data,
-            data: unsafe{self.data.add(start)},
-            end: unsafe{min(self.data.add(end), self.data.add(self.capacity))},
+            data: unsafe { self.data.add(start) },
+            end: unsafe { min(self.data.add(end), self.data.add(self.capacity)) },
         }
     }
 
     /// Extremely unsafe as it bypasses lifetime checks. Use if you know what you are doing.
     /// This is good for cases where you need dynamically retrieve multiple mutable iterators to chunks of non-overlapping data.
     #[inline(always)]
-    pub unsafe fn iter_range_mut_unchecked(&mut self, start: usize, end: usize) -> iterator::ArrayIteratorMut<'static, T> {
+    pub unsafe fn iter_range_mut_unchecked(
+        &mut self,
+        start: usize,
+        end: usize,
+    ) -> iterator::ArrayIteratorMut<'static, T> {
         static mut PHANTOM: PhantomData<()> = PhantomData;
         iterator::ArrayIteratorMut {
             phantom_data: &mut *addr_of_mut!(PHANTOM),
-            data: unsafe{self.data.add(start)},
-            end: unsafe{min(self.data.add(end), self.data.add(self.capacity))},
+            data: unsafe { self.data.add(start) },
+            end: unsafe { min(self.data.add(end), self.data.add(self.capacity)) },
         }
     }
 
-
-
     pub fn as_slice(&self) -> &[T] {
-        unsafe{std::slice::from_raw_parts(self.data, self.capacity)}
+        unsafe { std::slice::from_raw_parts(self.data, self.capacity) }
     }
 
     pub fn as_mut_slice(&mut self) -> &mut [T] {
-        unsafe{std::slice::from_raw_parts_mut(self.data, self.capacity)}
+        unsafe { std::slice::from_raw_parts_mut(self.data, self.capacity) }
     }
 
     pub fn split_at(&mut self, index: usize) -> (&[T], &[T]) {
         if index >= self.capacity {
             panic!("Index out of bounds");
         }
-        let new_data = unsafe{self.data.add(index)};
-        let left = unsafe{std::slice::from_raw_parts(self.data, index)};
-        let right = unsafe{std::slice::from_raw_parts(new_data, self.capacity - index)};
+        let new_data = unsafe { self.data.add(index) };
+        let left = unsafe { std::slice::from_raw_parts(self.data, index) };
+        let right = unsafe { std::slice::from_raw_parts(new_data, self.capacity - index) };
         (left, right)
     }
 
@@ -168,13 +171,13 @@ where
         if index >= self.capacity {
             panic!("Index out of bounds");
         }
-        let new_data = unsafe{self.data.add(index)};
-        let left = unsafe{std::slice::from_raw_parts_mut(self.data, index)};
-        let right = unsafe{std::slice::from_raw_parts_mut(new_data, self.capacity - index)};
+        let new_data = unsafe { self.data.add(index) };
+        let left = unsafe { std::slice::from_raw_parts_mut(self.data, index) };
+        let right = unsafe { std::slice::from_raw_parts_mut(new_data, self.capacity - index) };
         (left, right)
     }
 
-    pub fn split_into_parts(&self, parts: usize) -> Array<&[T]>{
+    pub fn split_into_parts(&self, parts: usize) -> Array<&[T]> {
         if parts > self.capacity {
             panic!("Parts must be less than or equal to the capacity of the array");
         }
@@ -188,16 +191,16 @@ where
 
         let mut arr = Array::<&[T]>::new(parts);
         let mut ptr = self.data as *const T;
-        for i in 0..parts -1 {
-            arr[i] = unsafe{std::slice::from_raw_parts(ptr, chunk_size)};
-            ptr = unsafe{ptr.add(chunk_size)};
+        for i in 0..parts - 1 {
+            arr[i] = unsafe { std::slice::from_raw_parts(ptr, chunk_size) };
+            ptr = unsafe { ptr.add(chunk_size) };
         }
 
-        arr[parts - 1] = unsafe{std::slice::from_raw_parts(ptr, chunk_size + remainder)};
+        arr[parts - 1] = unsafe { std::slice::from_raw_parts(ptr, chunk_size + remainder) };
 
         arr
     }
-    pub fn split_into_parts_mut(&mut self, parts: usize) -> Vec<&mut[T]> {
+    pub fn split_into_parts_mut(&mut self, parts: usize) -> Vec<&mut [T]> {
         if parts >= self.capacity {
             panic!("Parts must be less than or equal to the capacity of the array");
         }
@@ -212,25 +215,23 @@ where
         let mut arr = Vec::<&mut [T]>::with_capacity(parts);
         let mut ptr = self.data;
         for _ in 0..parts - 1 {
-            arr.push(unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size)});
-            ptr = unsafe{ptr.add(chunk_size)};
+            arr.push(unsafe { std::slice::from_raw_parts_mut(ptr, chunk_size) });
+            ptr = unsafe { ptr.add(chunk_size) };
         }
 
-        arr.push(unsafe{std::slice::from_raw_parts_mut(ptr, chunk_size + remainder)});
+        arr.push(unsafe { std::slice::from_raw_parts_mut(ptr, chunk_size + remainder) });
         arr
     }
     #[inline(always)]
     pub unsafe fn index_unchecked(&self, index: usize) -> &T {
-         self.data.add(index).as_ref().unwrap()
+        self.data.add(index).as_ref().unwrap()
     }
 
     #[inline(always)]
     pub unsafe fn index_unchecked_mut(&mut self, index: usize) -> &mut T {
         self.data.add(index).as_mut().unwrap()
     }
-
 }
-
 
 impl<T> Drop for Array<T>
 where
@@ -255,9 +256,7 @@ where
             panic!("Index out of bounds");
         }
 
-        unsafe {
-            &*self.data.add(index)
-        }
+        unsafe { &*self.data.add(index) }
     }
 }
 
@@ -270,8 +269,6 @@ where
         if index >= self.capacity {
             panic!("Index out of bounds");
         }
-        unsafe {
-            &mut *self.data.add(index)
-        }
+        unsafe { &mut *self.data.add(index) }
     }
 }

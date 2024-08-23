@@ -1,53 +1,51 @@
+use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
 use std::alloc::Layout;
 use std::ptr;
-use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
 
 #[cfg(target_pointer_width = "64")]
-pub(crate) mod consts{
+pub(crate) mod consts {
     pub(crate) const DIV_SHIFT: usize = 6;
     pub(crate) const MASK: usize = 63;
 }
 
 #[cfg(target_pointer_width = "32")]
-pub(self) mod consts{
+pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 5;
     pub(crate) const MASK: usize = 31;
 }
 #[cfg(target_pointer_width = "16")]
-pub(self) mod consts{
+pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 4;
     pub(crate) const MASK: usize = 15;
 }
 
 #[cfg(target_pointer_width = "8")]
-pub(self) mod consts{
+pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 3;
     pub(crate) const MASK: usize = 7;
 }
-
-
 
 pub struct Bitmap {
     data: *mut usize,
     bit_capacity: usize,
     capacity: usize,
-    layout: Layout
+    layout: Layout,
 }
 
-impl Bitmap
-{
+impl Bitmap {
     pub fn new(bit_count: usize) -> Self {
         let size = (bit_count >> DIV_SHIFT) + 1;
         let layout = Layout::array::<usize>(size).expect("Failed to create layout");
         let data = unsafe { std::alloc::alloc(layout) as *mut usize };
-        unsafe {ptr::write_bytes(data, 0, size)};
+        unsafe { ptr::write_bytes(data, 0, size) };
         Bitmap {
             data,
             capacity: size,
             bit_capacity: bit_count,
-            layout
+            layout,
         }
     }
+
     #[inline(always)]
     pub fn bit_capacity(&self) -> usize {
         self.bit_capacity

@@ -8,11 +8,9 @@ impl<T> FatPtrMut<T> {
     const SIZE: usize = std::mem::size_of::<T>();
     #[inline(always)]
     pub fn new(ptr: *mut T, end: *mut T) -> Self {
-        Self {
-            ptr,
-            end,
-        }
+        Self { ptr, end }
     }
+
     #[inline(always)]
     pub fn as_slice(&self) -> &[T] {
         let bytes_len = self.end as usize - self.ptr as usize;
@@ -27,14 +25,9 @@ impl<T> FatPtrMut<T> {
     pub fn from_mut_slice(slice: &mut [T]) -> Self {
         let ptr = slice.as_mut_ptr();
         let end = unsafe { ptr.add(slice.len()) };
-        Self {
-            ptr,
-            end,
-        }
+        Self { ptr, end }
     }
-
 }
-
 
 #[derive(Copy, Clone)]
 pub struct FatPtr<T> {
@@ -46,10 +39,7 @@ impl<T> FatPtr<T> {
     const SIZE: usize = std::mem::size_of::<T>();
     #[inline(always)]
     pub fn new(ptr: *const T, end: *const T) -> Self {
-        Self {
-            ptr,
-            end,
-        }
+        Self { ptr, end }
     }
     #[inline(always)]
     pub fn as_slice(&self) -> &[T] {
@@ -60,21 +50,18 @@ impl<T> FatPtr<T> {
     pub fn from_slice(slice: &[T]) -> Self {
         let ptr = slice.as_ptr();
         let end = unsafe { ptr.add(slice.len()) };
-        Self {
-            ptr,
-            end,
-        }
+        Self { ptr, end }
     }
 }
 
 impl<T> Iterator for FatPtr<T>
 where
-    T: 'static
+    T: 'static,
 {
     type Item = &'static T;
     fn next(&mut self) -> Option<Self::Item> {
         if self.ptr >= self.end {
-            return None
+            return None;
         }
         unsafe {
             let item = self.ptr.as_ref().unwrap();
@@ -86,12 +73,12 @@ where
 
 impl<T> Iterator for FatPtrMut<T>
 where
-    T: 'static
+    T: 'static,
 {
     type Item = &'static mut T;
     fn next(&mut self) -> Option<Self::Item> {
         if self.ptr >= self.end {
-            return None
+            return None;
         }
         unsafe {
             let item = self.ptr.as_mut().unwrap();

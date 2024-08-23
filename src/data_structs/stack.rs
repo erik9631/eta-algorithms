@@ -1,4 +1,4 @@
-use std::alloc::{Layout, realloc};
+use std::alloc::{realloc, Layout};
 use std::ops::{Index, IndexMut};
 use std::ptr;
 
@@ -12,7 +12,6 @@ where
     data: *mut T,
     top: *mut T,
     end: *mut T,
-
 }
 
 impl<T> Stack<T>
@@ -39,7 +38,7 @@ where
             layout,
             data,
             len: 0,
-            top: unsafe{data.offset(-1)},
+            top: unsafe { data.offset(-1) },
             end: unsafe { data.add(capacity) },
         }
     }
@@ -71,28 +70,24 @@ where
         if self.len == 0 {
             return None;
         }
-        unsafe {
-            Some(self.top.as_ref().unwrap())
-        }
+        unsafe { Some(self.top.as_ref().unwrap()) }
     }
     #[inline(always)]
     pub fn top_mut(&mut self) -> Option<&mut T> {
         if self.len == 0 {
             return None;
         }
-        unsafe {
-            Some(self.top.as_mut().unwrap())
-        }
+        unsafe { Some(self.top.as_mut().unwrap()) }
     }
     #[inline(always)]
     pub fn push(&mut self, value: T) {
-        let new_top = unsafe{self.top.offset(1)};
+        let new_top = unsafe { self.top.offset(1) };
         if new_top == self.end {
             panic!("Stack over capacity!");
         }
 
         self.top = new_top;
-        unsafe {self.top.write(value)};
+        unsafe { self.top.write(value) };
         self.len += 1;
     }
     #[inline(always)]
@@ -117,16 +112,16 @@ where
     type Output = T;
     #[inline(always)]
     fn index(&self, index: isize) -> &Self::Output {
-        if index > 0{
+        if index > 0 {
             panic!("Index out of bounds");
         }
 
-        if index <= -(self.len as isize){
+        if index <= -(self.len as isize) {
             panic!("Index out of bounds");
         }
 
-        let indexed_data = unsafe{self.top.offset(index)};
-        unsafe {indexed_data.as_ref().unwrap()}
+        let indexed_data = unsafe { self.top.offset(index) };
+        unsafe { indexed_data.as_ref().unwrap() }
     }
 }
 
@@ -136,16 +131,16 @@ where
 {
     #[inline(always)]
     fn index_mut(&mut self, index: isize) -> &mut Self::Output {
-        if index > 0{
+        if index > 0 {
             panic!("Index out of bounds");
         }
 
-        if index < -(self.len as isize){
+        if index < -(self.len as isize) {
             panic!("Index out of bounds");
         }
 
-        let indexed_data = unsafe{self.top.offset(index)};
-        unsafe {indexed_data.as_mut().unwrap()}
+        let indexed_data = unsafe { self.top.offset(index) };
+        unsafe { indexed_data.as_mut().unwrap() }
     }
 }
 
@@ -159,4 +154,3 @@ where
         }
     }
 }
-
