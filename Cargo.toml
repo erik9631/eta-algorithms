@@ -10,7 +10,7 @@ repository = "https://github.com/erik9631/eta-algorithms"
 
 [profile.test]
 debug = true
-inherits = "release"
+#inherits = "release"
 
 [dev-dependencies]
 criterion = { version = "0.5.1", features = ["html_reports"] }

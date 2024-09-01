@@ -46,6 +46,25 @@ impl Bitmap {
         }
     }
 
+    pub fn to_indices_true(&self) -> Vec<usize> {
+        let mut indices = Vec::new();
+        for i in 0..self.bit_capacity {
+            if unsafe { self.get_unchecked(i) } {
+                indices.push(i);
+            }
+        }
+        indices
+    }
+    pub fn to_indices_false(&self) -> Vec<usize> {
+        let mut indices = Vec::new();
+        for i in 0..self.bit_capacity {
+            if unsafe { self.get_unchecked(i) == false } {
+                indices.push(i);
+            }
+        }
+        indices
+    }
+
     #[inline(always)]
     pub fn bit_capacity(&self) -> usize {
         self.bit_capacity

@@ -1,13 +1,13 @@
 use crate::data_structs::array::Array;
 
 #[test]
-pub fn array_init_test(){
+pub fn array_init_test() {
     let array = Array::<i32>::new(10);
     assert_eq!(array.capacity(), 10);
 }
 
 #[test]
-pub fn array_default_test(){
+pub fn array_default_test() {
     let array = Array::<i8>::new_default_bytes(100, 0);
     assert_eq!(array.capacity(), 100);
     for i in array.iter() {
@@ -20,7 +20,7 @@ pub fn array_default_test(){
 }
 
 #[test]
-pub fn array_index_test(){
+pub fn array_index_test() {
     let mut array = Array::<i32>::new(10);
     for i in 0..10 {
         array[i] = i as i32;
@@ -32,7 +32,7 @@ pub fn array_index_test(){
 }
 
 #[test]
-pub fn iter_test(){
+pub fn iter_test() {
     let mut array = Array::<i32>::new(10);
     for i in 0..10 {
         array[i] = i as i32;
@@ -44,7 +44,7 @@ pub fn iter_test(){
 }
 
 #[test]
-pub fn extend_test(){
+pub fn extend_test() {
     let mut array = Array::<i32>::new(10);
     for i in 0..10 {
         array[i] = i as i32;
@@ -65,7 +65,7 @@ pub fn extend_test(){
 }
 
 #[test]
-pub fn extend_by_test(){
+pub fn extend_by_test() {
     let mut array = Array::<i32>::new(10);
     for i in 0..10 {
         array[i] = i as i32;
@@ -133,9 +133,8 @@ pub fn multiple_extension_test() {
     assert_eq!(array.capacity(), 15);
 }
 
-
 #[test]
-pub fn split_at_test(){
+pub fn split_at_test() {
     let mut array = Array::<i32>::new(10);
     for i in 0..10 {
         array[i] = i as i32;
@@ -151,7 +150,7 @@ pub fn split_at_test(){
 }
 
 #[test]
-pub fn split_at_mut_test(){
+pub fn split_at_mut_test() {
     let mut array = Array::<i32>::new(10);
     for i in 0..10 {
         array[i] = i as i32;
@@ -169,7 +168,7 @@ pub fn split_at_mut_test(){
 }
 
 #[test]
-pub fn split_into_parts_test(){
+pub fn split_into_parts_test() {
     let mut array = Array::<i32>::new(100);
     for i in 0..100 {
         array[i] = i as i32;
@@ -373,7 +372,7 @@ pub fn iter_range_mut_test() {
     for item in iter {
         *item = 100;
     }
-    for item in array.iter_range(2, 5){
+    for item in array.iter_range(2, 5) {
         assert_eq!(*item, 100);
     }
 }
@@ -434,5 +433,50 @@ fn multiple_unchecked_iter_range_mut_test() {
     for item in array.iter_range(6, 9) {
         assert_eq!(*item, 300);
     }
+}
 
+#[test]
+fn from_vec_test() {
+    let vec = vec![1, 2, 3, 4, 5];
+    let array = Array::from_vec(vec);
+    assert_eq!(array.capacity(), 5);
+    for i in 0..5 {
+        assert_eq!(array[i], i + 1);
+    }
+}
+
+#[test]
+fn from_vec_test_large() {
+    let mut vec = Vec::with_capacity(10000);
+    for i in 0..10000 {
+        vec.push(i);
+    }
+    let array = Array::from_vec(vec);
+    assert_eq!(array.capacity(), 10000);
+    for (idx, i) in array.iter().enumerate() {
+        assert_eq!(*i, idx);
+    }
+}
+
+#[test]
+fn from_slice_test() {
+    let vec = &[1, 2, 3, 4, 5];
+    let array = Array::from_slice(vec.as_slice());
+    assert_eq!(array.capacity(), 5);
+    for i in 0..5 {
+        assert_eq!(array[i], i + 1);
+    }
+}
+
+#[test]
+fn from_slice_test_large() {
+    let mut vec = Vec::with_capacity(10000);
+    for i in 0..10000 {
+        vec.push(i);
+    }
+    let array = Array::from_slice(vec.as_slice());
+    assert_eq!(array.capacity(), 10000);
+    for (idx, i) in array.iter().enumerate() {
+        assert_eq!(*i, idx);
+    }
 }

@@ -149,6 +149,23 @@ where
         }
     }
 
+    /// Copies the contents of the vector into the array.
+    pub fn from_vec(vec: Vec<T>) -> Self {
+        let mut arr = Self::new(vec.len());
+        unsafe {
+            copy_nonoverlapping(vec.as_ptr(), arr.data, arr.capacity);
+            arr
+        }
+    }
+    /// Copies the contents of the slice into the array.
+    pub fn from_slice(slice: &[T]) -> Self {
+        let mut arr = Self::new(slice.len());
+        unsafe {
+            copy_nonoverlapping(slice.as_ptr(), arr.data, arr.capacity);
+            arr
+        }
+    }
+
     pub fn as_slice(&self) -> &[T] {
         unsafe { std::slice::from_raw_parts(self.data, self.capacity) }
     }

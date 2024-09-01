@@ -1,7 +1,7 @@
 use crate::data_structs::bitmap::Bitmap;
 
 #[test]
-fn bitmap_init_test(){
+fn bitmap_init_test() {
     let bitmap = Bitmap::new(10);
     assert_eq!(bitmap.bit_capacity(), 10);
     assert_eq!(bitmap.capacity(), 1);
@@ -16,7 +16,7 @@ fn bitmap_init_test(){
 }
 
 #[test]
-fn bitmap_set_get_test(){
+fn bitmap_set_get_test() {
     let mut bitmap = Bitmap::new(10);
     bitmap.set(0, false);
     bitmap.set(1, true);
@@ -25,7 +25,7 @@ fn bitmap_set_get_test(){
     assert_eq!(bitmap.get(0), Some(false));
     assert_eq!(bitmap.get(1), Some(true));
     assert_eq!(bitmap.get(2), Some(true));
-    for i in 3..10{
+    for i in 3..10 {
         assert_eq!(bitmap.get(i), Some(false));
     }
 }
@@ -73,11 +73,10 @@ fn bitmap_get_over_capacity_test() {
     assert_eq!(bitmap.get(10), None);
 }
 
-
 #[test]
-fn bitmap_set_get_test_unchecked(){
+fn bitmap_set_get_test_unchecked() {
     let mut bitmap = Bitmap::new(10);
-    unsafe{
+    unsafe {
         bitmap.set_unchecked(0, false);
         bitmap.set_unchecked(1, true);
         bitmap.set_unchecked(2, true);
@@ -86,8 +85,49 @@ fn bitmap_set_get_test_unchecked(){
         assert!(bitmap.get_unchecked(1));
         assert!(bitmap.get_unchecked(2));
 
-        for i in 3..10{
+        for i in 3..10 {
             assert!(!bitmap.get_unchecked(i));
         }
     }
+}
+
+#[test]
+fn test_bitmap_to_indices() {
+    let mut bitmap = Bitmap::new(10);
+    bitmap.set(0, true);
+    bitmap.set(1, true);
+    bitmap.set(2, true);
+    bitmap.set(3, false);
+    bitmap.set(4, true);
+    bitmap.set(5, true);
+    bitmap.set(6, false);
+    bitmap.set(7, true);
+    bitmap.set(8, false);
+
+    let indices = bitmap.to_indices_true();
+    assert_eq!(indices.len(), 6);
+    assert_eq!(indices[0], 0);
+    assert_eq!(indices[1], 1);
+    assert_eq!(indices[2], 2);
+    assert_eq!(indices[3], 4);
+    assert_eq!(indices[4], 5);
+    assert_eq!(indices[5], 7);
+}
+
+#[test]
+fn bitmap_to_indices_false_test() {
+    let mut bitmap = Bitmap::new(10);
+    bitmap.set(1, true);
+    bitmap.set(2, true);
+    bitmap.set(4, true);
+    bitmap.set(5, true);
+    bitmap.set(7, true);
+
+    let indices = bitmap.to_indices_false();
+    assert_eq!(indices.len(), 5);
+    assert_eq!(indices[0], 0);
+    assert_eq!(indices[1], 3);
+    assert_eq!(indices[2], 6);
+    assert_eq!(indices[3], 8);
+    assert_eq!(indices[4], 9);
 }

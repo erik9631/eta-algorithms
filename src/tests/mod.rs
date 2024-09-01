@@ -1,8 +1,12 @@
 #[cfg(test)]
+mod algorithms;
+#[cfg(test)]
 mod array_tests;
 #[cfg(test)]
-mod stack_tests;
+mod bitmap;
+#[cfg(test)]
+mod fat_ptr;
 #[cfg(test)]
 mod queue_tests;
-mod bitmap;
-mod fat_ptr;
+#[cfg(test)]
+mod stack_tests;
