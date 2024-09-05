@@ -3,15 +3,18 @@ use crate::data_structs::bitmap::Bitmap;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
-pub fn calculate_uniqueness(identifiers: &[i32], indices_hash: &mut HashMap<i32, usize>) -> (i32, Bitmap) {
-    let mut bitmap = Bitmap::new(identifiers.len());
+pub fn calculate_uniqueness<T>(values: &[T], values_hash: &mut HashMap<T, usize>) -> (u32, Bitmap)
+where
+    T: Copy + Sized + Hash + Eq,
+{
+    let mut bitmap = Bitmap::new(values.len());
     let mut score = 0;
-    for (index, value) in identifiers.iter().enumerate() {
-        if let Some(original_index) = indices_hash.get(value) {
+    for (index, value) in values.iter().enumerate() {
+        if let Some(original_index) = values_hash.get(value) {
             bitmap.set(*original_index, false);
             continue;
         }
-        indices_hash.insert(*value, index);
+        values_hash.insert(*value, index);
         bitmap.set(index, true);
         score += 1;
     }
@@ -19,18 +22,21 @@ pub fn calculate_uniqueness(identifiers: &[i32], indices_hash: &mut HashMap<i32,
     (score, bitmap)
 }
 
-pub fn optimize_diversity(existing_identifiers: &[i32], input_identifiers: &[i32]) -> Array<i32> {
-    let mut top = input_identifiers.len() - 1;
-    let mut hash_map = HashMap::with_capacity(existing_identifiers.len());
-    let (_, bitmap) = calculate_uniqueness(existing_identifiers, &mut hash_map);
-    let mut new_data = Array::from_slice(existing_identifiers);
+pub fn optimize_diversity<T>(existing_values: &[T], values: &[T]) -> Array<T>
+where
+    T: Copy + Sized + Hash + Eq,
+{
+    let mut top = values.len() - 1;
+    let mut hash_map = HashMap::with_capacity(existing_values.len());
+    let (_, bitmap) = calculate_uniqueness(existing_values, &mut hash_map);
+    let mut new_data = Array::from_slice(existing_values);
     let accessible_indices = bitmap.to_indices_false();
     for accessible_index in accessible_indices {
         if top == 0 {
             break;
         }
 
-        let new_diversity = unsafe { input_identifiers.get_unchecked(top) };
+        let new_diversity = unsafe { values.get_unchecked(top) };
         top -= 1;
         if hash_map.contains_key(new_diversity) {
             continue;
@@ -42,12 +48,13 @@ pub fn optimize_diversity(existing_identifiers: &[i32], input_identifiers: &[i32
     new_data
 }
 
-pub fn extract_unique_pairs<T>(values: &[T], identifiers: &[i32]) -> (Vec<T>, Vec<i32>)
+pub fn extract_unique_pairs<T, U>(values: &[T], values_pair: &[U]) -> (Vec<T>, Vec<U>)
 where
     T: Copy + Sized + Hash + Eq,
+    U: Copy + Sized + Hash + Eq,
 {
     let mut value_hashmap = HashMap::with_capacity(values.len());
-    let (_, unique_value_markers) = calculate_uniqueness(identifiers, &mut value_hashmap);
+    let (_, unique_value_markers) = calculate_uniqueness(values, &mut value_hashmap);
     let value_uniques = unique_value_markers.to_indices_true();
     let value_overlap = unique_value_markers.to_indices_false();
     let mut output_values = Vec::with_capacity(value_uniques.len());
@@ -55,7 +62,7 @@ where
 
     for index in value_uniques.iter() {
         output_values.push(unsafe { *values.get_unchecked(*index) });
-        output_indices.push(*index as i32);
+        output_indices.push(unsafe { *values_pair.get_unchecked(*index) });
     }
 
     // Now fill in the non-unique values, but only once!
@@ -66,7 +73,7 @@ where
             continue;
         }
         output_values.push(*value);
-        output_indices.push(*index as i32);
+        output_indices.push(unsafe { *values_pair.get_unchecked(*index) });
         fill_out_hash.insert(value);
     }
 

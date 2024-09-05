@@ -1,7 +1,7 @@
-use crate::algorithms::{calculate_uniqueness, optimize_diversity};
+use crate::algorithms::{calculate_uniqueness, extract_unique_pairs, optimize_diversity};
 
 #[test]
-fn test_flat_diversity_score_diverse() {
+fn test_calculate_uniqueness_diverse() {
     let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
     let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
@@ -14,7 +14,7 @@ fn test_flat_diversity_score_diverse() {
 }
 
 #[test]
-fn test_flat_diversity_score_equal() {
+fn test_calculate_uniqueness_equal() {
     let data = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
     let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
@@ -28,7 +28,7 @@ fn test_flat_diversity_score_equal() {
 }
 
 #[test]
-fn test_flat_diversity_score_periodic() {
+fn test_calculate_uniqueness_periodic() {
     let data = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
     let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
@@ -42,7 +42,7 @@ fn test_flat_diversity_score_periodic() {
 }
 
 #[test]
-fn test_flat_diversity_score_diverse1() {
+fn test_calculate_uniqueness_diverse1() {
     let data = [1, 3, 3, 4];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
     let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
@@ -56,7 +56,7 @@ fn test_flat_diversity_score_diverse1() {
 }
 
 #[test]
-fn test_best_flat_diversity_same() {
+fn test_calculate_uniqueness_same() {
     let data = [1, 1, 1, 1];
     let input_data = [2, 2, 2, 2];
     let new_data = optimize_diversity(&data, &input_data);
@@ -77,7 +77,7 @@ fn test_best_flat_diversity_diverge_same() {
     assert_eq!(new_data[3], 2);
 }
 #[test]
-fn test_best_flat_diversity_diverge_change() {
+fn test_calculate_uniqueness_diverge_change() {
     let data = [1, 2, 1, 2];
     let input_data = [1, 2, 1, 3];
     let new_data = optimize_diversity(&data, &input_data);
@@ -85,4 +85,89 @@ fn test_best_flat_diversity_diverge_change() {
     assert_eq!(new_data[1], 2);
     assert_eq!(new_data[2], 1);
     assert_eq!(new_data[3], 2);
+}
+
+#[test]
+fn test_extract_unique_pairs_diverse() {
+    let values = [1, 2, 4, 5, 6, 6, 8, 4];
+    let identifiers = [1, 1, 1, 2, 2, 3, 3, 3];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec![1, 2, 5, 8, 4, 6]);
+    assert_eq!(output_indices, vec![1, 1, 2, 3, 1, 2]);
+}
+
+#[test]
+fn test_extract_unique_pairs_all_unique() {
+    let values = vec![1, 2, 3, 4, 5];
+    let identifiers = vec![10, 20, 30, 40, 50];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec![1, 2, 3, 4, 5]);
+    assert_eq!(output_indices, vec![10, 20, 30, 40, 50]);
+}
+
+#[test]
+fn test_extract_unique_pairs_with_duplicates() {
+    let values = vec![1, 2, 2, 3, 1, 4];
+    let identifiers = vec![10, 20, 30, 40, 50, 60];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec![3, 4, 1, 2]);
+    assert_eq!(output_indices, vec![40, 60, 10, 20]);
+}
+#[test]
+fn test_extract_unique_pairs_all_duplicates() {
+    let values = vec![1, 1, 1, 1];
+    let identifiers = vec![10, 20, 30, 40];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec![1]);
+    assert_eq!(output_indices, vec![10]);
+}
+
+#[test]
+fn test_extract_unique_pairs_empty_input() {
+    let values: Vec<i32> = vec![];
+    let identifiers: Vec<i32> = vec![];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert!(output_values.is_empty());
+    assert!(output_indices.is_empty());
+}
+
+#[test]
+fn test_extract_unique_pairs_with_strings() {
+    let values = vec!["apple", "banana", "apple", "cherry", "date", "banana"];
+    let identifiers = vec![100, 200, 300, 400, 500, 600];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec!["cherry", "date", "apple", "banana"]);
+    assert_eq!(output_indices, vec![400, 500, 100, 200]);
+}
+
+#[test]
+fn test_extract_unique_pairs_with_non_sequential_identifiers() {
+    let values = vec![5, 4, 3, 4, 2, 1];
+    let identifiers = vec![50, 40, 30, 45, 20, 10];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec![5, 3, 2, 1, 4]);
+    assert_eq!(output_indices, vec![50, 30, 20, 10, 40]);
+}
+
+#[test]
+fn test_extract_unique_pairs_with_custom_struct() {
+    #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
+    struct Point {
+        x: i32,
+        y: i32,
+    }
+    let values = vec![
+        Point { x: 1, y: 2 },
+        Point { x: 3, y: 4 },
+        Point { x: 1, y: 2 },
+        Point { x: 5, y: 6 },
+    ];
+
+    let identifiers = vec![1000, 2000, 3000, 4000];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(
+        output_values,
+        vec![Point { x: 3, y: 4 }, Point { x: 5, y: 6 }, Point { x: 1, y: 2 }]
+    );
+    assert_eq!(output_indices, vec![2000, 4000, 1000]);
 }
