@@ -438,7 +438,7 @@ fn multiple_unchecked_iter_range_mut_test() {
 #[test]
 fn from_vec_test() {
     let vec = vec![1, 2, 3, 4, 5];
-    let array = Array::from_vec(vec);
+    let array = Array::copy_from_vec(vec);
     assert_eq!(array.capacity(), 5);
     for i in 0..5 {
         assert_eq!(array[i], i + 1);
@@ -451,7 +451,7 @@ fn from_vec_test_large() {
     for i in 0..10000 {
         vec.push(i);
     }
-    let array = Array::from_vec(vec);
+    let array = Array::copy_from_vec(vec);
     assert_eq!(array.capacity(), 10000);
     for (idx, i) in array.iter().enumerate() {
         assert_eq!(*i, idx);
@@ -461,7 +461,7 @@ fn from_vec_test_large() {
 #[test]
 fn from_slice_test() {
     let vec = &[1, 2, 3, 4, 5];
-    let array = Array::from_slice(vec.as_slice());
+    let array = Array::copy_from_slice(vec.as_slice());
     assert_eq!(array.capacity(), 5);
     for i in 0..5 {
         assert_eq!(array[i], i + 1);
@@ -474,7 +474,7 @@ fn from_slice_test_large() {
     for i in 0..10000 {
         vec.push(i);
     }
-    let array = Array::from_slice(vec.as_slice());
+    let array = Array::copy_from_slice(vec.as_slice());
     assert_eq!(array.capacity(), 10000);
     for (idx, i) in array.iter().enumerate() {
         assert_eq!(*i, idx);

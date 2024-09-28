@@ -29,7 +29,7 @@ where
     let mut top = values.len() - 1;
     let mut hash_map = HashMap::with_capacity(existing_values.len());
     let (_, bitmap) = find_uniques(existing_values, &mut hash_map);
-    let mut new_data = Array::from_slice(existing_values);
+    let mut new_data = Array::copy_from_slice(existing_values);
     let accessible_indices = bitmap.to_indices_false();
     for accessible_index in accessible_indices {
         if top == 0 {

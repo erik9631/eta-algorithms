@@ -1,3 +1,4 @@
+use crate::data_structs::bitmap::Bitmap;
 use std::alloc::{realloc, Layout};
 use std::cmp::min;
 use std::marker::PhantomData;
@@ -12,6 +13,7 @@ where
     T: Copy + Sized,
 {
     phantom_data: PhantomData<()>, // For compile time borrow checking correctness
+    write_map: Bitmap,
     layout: Layout,
     data: *mut T,
     capacity: usize,
@@ -32,10 +34,6 @@ impl<T> Array<T>
 where
     T: Copy + Sized,
 {
-    #[inline(always)]
-    pub fn capacity(&self) -> usize {
-        self.capacity
-    }
     pub fn extend(&mut self, new_capacity: usize) {
         let new_layout = Layout::array::<T>(new_capacity).expect("Failed to create layout");
         let new_ptr = unsafe { realloc(self.data as *mut u8, new_layout, new_layout.size()) };
@@ -46,6 +44,21 @@ where
         self.capacity = new_capacity;
         self.layout = new_layout;
     }
+
+    #[inline(always)]
+    pub fn extend_by(&mut self, additional_capacity: usize) {
+        self.extend(self.capacity + additional_capacity);
+    }
+}
+
+impl<T> Array<T> {
+    #[inline(always)]
+    pub fn capacity(&self) -> usize {
+        self.capacity
+    }
+
+    pub fn extend(&mut self, new_capacity: usize) {}
+
     #[inline(always)]
     pub fn extend_by(&mut self, additional_capacity: usize) {
         self.extend(self.capacity + additional_capacity);
