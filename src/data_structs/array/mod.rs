@@ -136,11 +136,7 @@ where
     /// Extremely unsafe as it bypasses lifetime checks. Use if you know what you are doing.
     /// This is good for cases where you need dynamically retrieve multiple mutable iterators to chunks of non-overlapping data.
     #[inline(always)]
-    pub unsafe fn iter_range_mut_unchecked(
-        &mut self,
-        start: usize,
-        end: usize,
-    ) -> iterator::ArrayIteratorMut<'static, T> {
+    pub unsafe fn iter_range_mut_unchecked(&mut self, start: usize, end: usize) -> iterator::ArrayIteratorMut<'static, T> {
         static mut PHANTOM: PhantomData<()> = PhantomData;
         iterator::ArrayIteratorMut {
             phantom_data: &mut *addr_of_mut!(PHANTOM),
@@ -151,7 +147,7 @@ where
 
     /// Copies the contents of the vector into the array.
     pub fn from_vec(vec: Vec<T>) -> Self {
-        let mut arr = Self::new(vec.len());
+        let arr = Self::new(vec.len());
         unsafe {
             copy_nonoverlapping(vec.as_ptr(), arr.data, arr.capacity);
             arr
@@ -159,7 +155,7 @@ where
     }
     /// Copies the contents of the slice into the array.
     pub fn from_slice(slice: &[T]) -> Self {
-        let mut arr = Self::new(slice.len());
+        let arr = Self::new(slice.len());
         unsafe {
             copy_nonoverlapping(slice.as_ptr(), arr.data, arr.capacity);
             arr

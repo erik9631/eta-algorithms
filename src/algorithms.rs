@@ -3,7 +3,7 @@ use crate::data_structs::bitmap::Bitmap;
 use std::collections::{HashMap, HashSet};
 use std::hash::Hash;
 
-pub fn calculate_uniqueness<T>(values: &[T], values_hash: &mut HashMap<T, usize>) -> (u32, Bitmap)
+pub fn find_uniques<T>(values: &[T], values_hash: &mut HashMap<T, usize>) -> (u32, Bitmap)
 where
     T: Copy + Sized + Hash + Eq,
 {
@@ -28,7 +28,7 @@ where
 {
     let mut top = values.len() - 1;
     let mut hash_map = HashMap::with_capacity(existing_values.len());
-    let (_, bitmap) = calculate_uniqueness(existing_values, &mut hash_map);
+    let (_, bitmap) = find_uniques(existing_values, &mut hash_map);
     let mut new_data = Array::from_slice(existing_values);
     let accessible_indices = bitmap.to_indices_false();
     for accessible_index in accessible_indices {
@@ -48,34 +48,33 @@ where
     new_data
 }
 
-pub fn extract_unique_pairs<T, U>(values: &[T], values_pair: &[U]) -> (Vec<T>, Vec<U>)
+pub fn extract_unique_pairs<T, U>(primary: &[T], secondary: &[U]) -> (Vec<T>, Vec<U>)
 where
     T: Copy + Sized + Hash + Eq,
     U: Copy + Sized + Hash + Eq,
 {
-    let mut value_hashmap = HashMap::with_capacity(values.len());
-    let (_, unique_value_markers) = calculate_uniqueness(values, &mut value_hashmap);
-    let value_uniques = unique_value_markers.to_indices_true();
-    let value_overlap = unique_value_markers.to_indices_false();
-    let mut output_values = Vec::with_capacity(value_uniques.len());
-    let mut output_indices = Vec::with_capacity(value_uniques.len());
+    let mut primary_set = HashSet::<T>::with_capacity(primary.len());
+    let mut secondary_set = HashSet::<U>::with_capacity(secondary.len());
+    let mut pre_emptive_map = HashMap::<T, U>::with_capacity(primary.len());
+    let mut out_primary = Vec::<T>::with_capacity(primary.len());
+    let mut out_secondary = Vec::<U>::with_capacity(secondary.len());
 
-    for index in value_uniques.iter() {
-        output_values.push(unsafe { *values.get_unchecked(*index) });
-        output_indices.push(unsafe { *values_pair.get_unchecked(*index) });
-    }
-
-    // Now fill in the non-unique values, but only once!
-    let mut fill_out_hash = HashSet::with_capacity(value_overlap.len());
-    for index in value_overlap.iter() {
-        let value = unsafe { values.get_unchecked(*index) };
-        if fill_out_hash.contains(value) {
-            continue;
+    for (primary, secondary) in primary.iter().zip(secondary) {
+        if !primary_set.contains(primary) {
+            if secondary_set.insert(*secondary) {
+                primary_set.insert(*primary);
+                out_primary.push(*primary);
+                out_secondary.push(*secondary);
+                pre_emptive_map.remove(primary);
+                continue;
+            }
+            pre_emptive_map.insert(*primary, *secondary);
         }
-        output_values.push(*value);
-        output_indices.push(unsafe { *values_pair.get_unchecked(*index) });
-        fill_out_hash.insert(value);
     }
 
-    (output_values, output_indices)
+    for (primary, secondary) in pre_emptive_map {
+        out_primary.push(primary);
+        out_secondary.push(secondary);
+    }
+    (out_primary, out_secondary)
 }

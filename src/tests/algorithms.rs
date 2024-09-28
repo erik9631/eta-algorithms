@@ -1,10 +1,10 @@
-use crate::algorithms::{calculate_uniqueness, extract_unique_pairs, optimize_diversity};
+use crate::algorithms::{extract_unique_pairs, find_uniques, optimize_diversity};
 
 #[test]
 fn test_calculate_uniqueness_diverse() {
     let data = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
-    let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
+    let (score, bitmap) = find_uniques(&data, &mut hash_map);
     assert_eq!(score, 10);
     assert_eq!(bitmap.capacity(), 1);
     assert_eq!(bitmap.bit_capacity(), 10);
@@ -17,7 +17,7 @@ fn test_calculate_uniqueness_diverse() {
 fn test_calculate_uniqueness_equal() {
     let data = [1, 1, 1, 1, 1, 1, 1, 1, 1, 1];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
-    let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
+    let (score, bitmap) = find_uniques(&data, &mut hash_map);
     assert_eq!(score, 1);
     assert_eq!(bitmap.capacity(), 1);
     assert_eq!(bitmap.bit_capacity(), data.len());
@@ -31,7 +31,7 @@ fn test_calculate_uniqueness_equal() {
 fn test_calculate_uniqueness_periodic() {
     let data = [1, 2, 1, 2, 1, 2, 1, 2, 1, 2];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
-    let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
+    let (score, bitmap) = find_uniques(&data, &mut hash_map);
     assert_eq!(score, 2);
     assert_eq!(bitmap.capacity(), 1);
     assert_eq!(bitmap.bit_capacity(), data.len());
@@ -45,7 +45,7 @@ fn test_calculate_uniqueness_periodic() {
 fn test_calculate_uniqueness_diverse1() {
     let data = [1, 3, 3, 4];
     let mut hash_map = std::collections::HashMap::with_capacity(data.len());
-    let (score, bitmap) = calculate_uniqueness(&data, &mut hash_map);
+    let (score, bitmap) = find_uniques(&data, &mut hash_map);
     assert_eq!(score, 3);
     assert_eq!(bitmap.capacity(), 1);
     assert_eq!(bitmap.bit_capacity(), data.len());
@@ -91,9 +91,9 @@ fn test_calculate_uniqueness_diverge_change() {
 fn test_extract_unique_pairs_diverse() {
     let values = [1, 2, 4, 5, 6, 6, 8, 4];
     let identifiers = [1, 1, 1, 2, 2, 3, 3, 3];
-    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![1, 2, 5, 8, 4, 6]);
-    assert_eq!(output_indices, vec![1, 1, 2, 3, 1, 2]);
+    let (output_values, output_identifiers) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec![1, 5, 6, 2, 4, 8]);
+    assert_eq!(output_identifiers, vec![1, 2, 3, 1, 3, 3]);
 }
 
 #[test]
@@ -110,8 +110,8 @@ fn test_extract_unique_pairs_with_duplicates() {
     let values = vec![1, 2, 2, 3, 1, 4];
     let identifiers = vec![10, 20, 30, 40, 50, 60];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![3, 4, 1, 2]);
-    assert_eq!(output_indices, vec![40, 60, 10, 20]);
+    assert_eq!(output_values, vec![1, 2, 3, 4]);
+    assert_eq!(output_indices, vec![10, 20, 40, 60]);
 }
 #[test]
 fn test_extract_unique_pairs_all_duplicates() {
@@ -136,19 +136,9 @@ fn test_extract_unique_pairs_with_strings() {
     let values = vec!["apple", "banana", "apple", "cherry", "date", "banana"];
     let identifiers = vec![100, 200, 300, 400, 500, 600];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec!["cherry", "date", "apple", "banana"]);
-    assert_eq!(output_indices, vec![400, 500, 100, 200]);
+    assert_eq!(output_values, vec!["apple", "banana", "cherry", "date"]);
+    assert_eq!(output_indices, vec![100, 200, 400, 500]);
 }
-
-#[test]
-fn test_extract_unique_pairs_with_non_sequential_identifiers() {
-    let values = vec![5, 4, 3, 4, 2, 1];
-    let identifiers = vec![50, 40, 30, 45, 20, 10];
-    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![5, 3, 2, 1, 4]);
-    assert_eq!(output_indices, vec![50, 30, 20, 10, 40]);
-}
-
 #[test]
 fn test_extract_unique_pairs_with_custom_struct() {
     #[derive(Debug, PartialEq, Eq, Hash, Copy, Clone)]
@@ -167,7 +157,16 @@ fn test_extract_unique_pairs_with_custom_struct() {
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
     assert_eq!(
         output_values,
-        vec![Point { x: 3, y: 4 }, Point { x: 5, y: 6 }, Point { x: 1, y: 2 }]
+        vec![Point { x: 1, y: 2 }, Point { x: 3, y: 4 }, Point { x: 5, y: 6 }]
     );
-    assert_eq!(output_indices, vec![2000, 4000, 1000]);
+    assert_eq!(output_indices, vec![1000, 2000, 4000]);
+}
+
+#[test]
+fn test_non_unique_pairs() {
+    let values = vec![1, 2, 3, 1, 2, 3, 2, 3, 4];
+    let identifiers = vec![1, 1, 1, 2, 2, 2, 3, 3, 3];
+    let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
+    assert_eq!(output_values, vec![1, 2, 3, 4]);
+    assert_eq!(output_indices, vec![1, 2, 3, 3]);
 }
