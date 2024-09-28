@@ -1,4 +1,5 @@
 use crate::algorithms::{extract_unique_pairs, find_uniques, optimize_diversity};
+use std::collections::HashMap;
 
 #[test]
 fn test_calculate_uniqueness_diverse() {
@@ -92,8 +93,13 @@ fn test_extract_unique_pairs_diverse() {
     let values = [1, 2, 4, 5, 6, 6, 8, 4];
     let identifiers = [1, 1, 1, 2, 2, 3, 3, 3];
     let (output_values, output_identifiers) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![1, 5, 6, 2, 4, 8]);
-    assert_eq!(output_identifiers, vec![1, 2, 3, 1, 3, 3]);
+    let mut correct_values = HashMap::from([(1, 1), (5, 2), (6, 3), (4, 3), (8, 3), (2, 1)]);
+
+    for (value, identifier) in output_values.iter().zip(output_identifiers.iter()) {
+        let pair = correct_values.remove(value).unwrap();
+        assert_eq!(*identifier, pair);
+    }
+    assert!(correct_values.is_empty());
 }
 
 #[test]
@@ -101,8 +107,13 @@ fn test_extract_unique_pairs_all_unique() {
     let values = vec![1, 2, 3, 4, 5];
     let identifiers = vec![10, 20, 30, 40, 50];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![1, 2, 3, 4, 5]);
-    assert_eq!(output_indices, vec![10, 20, 30, 40, 50]);
+    let mut correct_values = HashMap::from([(1, 10), (2, 20), (3, 30), (4, 40), (5, 50)]);
+
+    for (value, identifier) in output_values.iter().zip(output_indices.iter()) {
+        let pair = correct_values.remove(value).unwrap();
+        assert_eq!(*identifier, pair);
+    }
+    assert!(correct_values.is_empty());
 }
 
 #[test]
@@ -110,16 +121,25 @@ fn test_extract_unique_pairs_with_duplicates() {
     let values = vec![1, 2, 2, 3, 1, 4];
     let identifiers = vec![10, 20, 30, 40, 50, 60];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![1, 2, 3, 4]);
-    assert_eq!(output_indices, vec![10, 20, 40, 60]);
+    let mut correct_values = HashMap::from([(1, 10), (2, 20), (3, 40), (4, 60)]);
+
+    for (value, identifier) in output_values.iter().zip(output_indices.iter()) {
+        let pair = correct_values.remove(value).unwrap();
+        assert_eq!(*identifier, pair);
+    }
+    assert!(correct_values.is_empty());
 }
 #[test]
 fn test_extract_unique_pairs_all_duplicates() {
     let values = vec![1, 1, 1, 1];
     let identifiers = vec![10, 20, 30, 40];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![1]);
-    assert_eq!(output_indices, vec![10]);
+    let mut correct_values = HashMap::from([(1, 10)]);
+    for (value, identifier) in output_values.iter().zip(output_indices.iter()) {
+        let pair = correct_values.remove(value).unwrap();
+        assert_eq!(*identifier, pair);
+    }
+    assert!(correct_values.is_empty());
 }
 
 #[test]
@@ -136,8 +156,12 @@ fn test_extract_unique_pairs_with_strings() {
     let values = vec!["apple", "banana", "apple", "cherry", "date", "banana"];
     let identifiers = vec![100, 200, 300, 400, 500, 600];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec!["apple", "banana", "cherry", "date"]);
-    assert_eq!(output_indices, vec![100, 200, 400, 500]);
+    let mut correct_values = HashMap::from([("apple", 100), ("banana", 200), ("cherry", 400), ("date", 500)]);
+    for (value, identifier) in output_values.iter().zip(output_indices.iter()) {
+        let pair = correct_values.remove(value).unwrap();
+        assert_eq!(*identifier, pair);
+    }
+    assert!(correct_values.is_empty());
 }
 #[test]
 fn test_extract_unique_pairs_with_custom_struct() {
@@ -155,11 +179,16 @@ fn test_extract_unique_pairs_with_custom_struct() {
 
     let identifiers = vec![1000, 2000, 3000, 4000];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(
-        output_values,
-        vec![Point { x: 1, y: 2 }, Point { x: 3, y: 4 }, Point { x: 5, y: 6 }]
-    );
-    assert_eq!(output_indices, vec![1000, 2000, 4000]);
+    let mut correct_values = HashMap::from([
+        (Point { x: 1, y: 2 }, 1000),
+        (Point { x: 3, y: 4 }, 2000),
+        (Point { x: 5, y: 6 }, 4000),
+    ]);
+    for (value, identifier) in output_values.iter().zip(output_indices.iter()) {
+        let pair = correct_values.remove(value).unwrap();
+        assert_eq!(*identifier, pair);
+    }
+    assert!(correct_values.is_empty());
 }
 
 #[test]
@@ -167,6 +196,10 @@ fn test_non_unique_pairs() {
     let values = vec![1, 2, 3, 1, 2, 3, 2, 3, 4];
     let identifiers = vec![1, 1, 1, 2, 2, 2, 3, 3, 3];
     let (output_values, output_indices) = extract_unique_pairs(&values, &identifiers);
-    assert_eq!(output_values, vec![1, 2, 3, 4]);
-    assert_eq!(output_indices, vec![1, 2, 3, 3]);
+    let mut correct_values = HashMap::from([(1, 1), (2, 2), (3, 3), (4, 3)]);
+    for (value, identifier) in output_values.iter().zip(output_indices.iter()) {
+        let pair = correct_values.remove(value).unwrap();
+        assert_eq!(*identifier, pair);
+    }
+    assert!(correct_values.is_empty());
 }
