@@ -10,3 +10,5 @@ mod fat_ptr;
 mod queue_tests;
 #[cfg(test)]
 mod stack_tests;
+#[cfg(test)]
+mod atomic_bitmap;

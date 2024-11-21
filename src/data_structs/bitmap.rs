@@ -1,6 +1,7 @@
-use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
 use std::alloc::Layout;
 use std::ptr;
+
+use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
 
 #[cfg(target_pointer_width = "64")]
 pub(crate) mod consts {
@@ -13,17 +14,13 @@ pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 5;
     pub(crate) const MASK: usize = 31;
 }
+
 #[cfg(target_pointer_width = "16")]
 pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 4;
     pub(crate) const MASK: usize = 15;
 }
 
-#[cfg(target_pointer_width = "8")]
-pub(self) mod consts {
-    pub(crate) const DIV_SHIFT: usize = 3;
-    pub(crate) const MASK: usize = 7;
-}
 
 pub struct Bitmap {
     data: *mut usize,
