@@ -17,7 +17,7 @@ impl BitOrAssign for Handle {
 }
 
 impl Handle {
-    pub fn new(offsets: &[usize]) -> Array<Self> {
+    pub fn new_batch(offsets: &[usize]) -> Array<Self> {
         let mut array = Array::new_default_bytes(offsets.len(), 0);
         let mut len = 0;
         let mut chunk_table = HashMap::<u8, usize>::new();

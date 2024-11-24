@@ -145,7 +145,7 @@ fn bitmap_batch_test_single() {
     bitmap.set(6, false);
     bitmap.set(7, true);
     bitmap.set(8, false);
-    let handles = Handle::new(&[0, 1, 2, 4, 5, 7]);
+    let handles = Handle::new_batch(&[0, 1, 2, 4, 5, 7]);
     assert_eq!(handles.capacity(), 1);
     assert!(bitmap.check_batch(handles.as_slice()));
 }
@@ -162,7 +162,7 @@ fn bitmap_batch_test_single_false() {
     bitmap.set(6, false);
     bitmap.set(7, true);
     bitmap.set(8, false);
-    let handles = Handle::new(&[0, 1, 2, 4, 5, 7, 8]);
+    let handles = Handle::new_batch(&[0, 1, 2, 4, 5, 7, 8]);
     assert_eq!(bitmap.check_batch(handles.as_slice()), false);
 }
 
@@ -172,7 +172,7 @@ fn bitmap_test_batch() {
     for i in 0..1024 {
         bitmap.set(i, i % 2 == 0);
     }
-    let handles = Handle::new(&[0, 4, 1022]);
+    let handles = Handle::new_batch(&[0, 4, 1022]);
     assert_eq!(bitmap.check_batch(handles.as_slice()), true);
 }
 
@@ -182,7 +182,7 @@ fn bitmap_test_batch_fail() {
     for i in 0..1024 {
         bitmap.set(i, i % 2 == 0);
     }
-    let handles = Handle::new(&[0, 4, 1023]);
+    let handles = Handle::new_batch(&[0, 4, 1023]);
     assert_eq!(bitmap.check_batch(handles.as_slice()), false);
 }
 
@@ -192,6 +192,6 @@ fn bitmap_test_batch_overlapping() {
     for i in 0..1024 {
         bitmap.set(i, i % 2 == 0);
     }
-    let handles = Handle::new(&[0, 4, 6, 8, 10, 12, 14, 1022]);
+    let handles = Handle::new_batch(&[0, 4, 6, 8, 10, 12, 14, 1022]);
     assert_eq!(bitmap.check_batch(handles.as_slice()), true);
 }

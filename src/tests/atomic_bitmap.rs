@@ -1,5 +1,6 @@
 use crate::data_structs::bitmap::atomic_bitmap::AtomicBitmap;
 use crate::data_structs::bitmap::atomic_bitmap::Mode::Relaxed;
+use crate::data_structs::bitmap::handle::Handle;
 use crate::data_structs::bitmap::Bitmap;
 
 #[test]
@@ -19,7 +20,7 @@ fn bitmap_init_test() {
 
 #[test]
 fn bitmap_set_get_test() {
-    let mut bitmap = AtomicBitmap::new(10);
+    let bitmap = AtomicBitmap::new(10);
     bitmap.set(0, false, Relaxed);
     bitmap.set(1, true, Relaxed);
     bitmap.set(2, true, Relaxed);
@@ -34,7 +35,7 @@ fn bitmap_set_get_test() {
 
 #[test]
 fn bitmap_set_get_test2() {
-    let mut bitmap = AtomicBitmap::new(129);
+    let bitmap = AtomicBitmap::new(129);
     bitmap.set(0, false, Relaxed);
     bitmap.set(1, true, Relaxed);
     bitmap.set(2, true, Relaxed);
@@ -52,7 +53,7 @@ fn bitmap_set_get_test2() {
 #[test]
 #[should_panic]
 fn bitmap_over_capacity_test() {
-    let mut bitmap = AtomicBitmap::new(1);
+    let bitmap = AtomicBitmap::new(1);
     bitmap.set(0, true, Relaxed);
     assert_eq!(bitmap.get(0, Relaxed), Some(true));
     bitmap.set(1, true, Relaxed);
@@ -61,7 +62,7 @@ fn bitmap_over_capacity_test() {
 #[test]
 #[should_panic]
 fn bitmap_over_capacity_test2() {
-    let mut bitmap = AtomicBitmap::new(1);
+    let bitmap = AtomicBitmap::new(1);
     bitmap.set(0, true, Relaxed);
     assert_eq!(bitmap.get(0, Relaxed), Some(true));
     bitmap.set(1, true, Relaxed);
@@ -69,7 +70,7 @@ fn bitmap_over_capacity_test2() {
 
 #[test]
 fn bitmap_get_over_capacity_test() {
-    let mut bitmap = AtomicBitmap::new(10);
+    let bitmap = AtomicBitmap::new(10);
     bitmap.set(9, true, Relaxed);
     assert_eq!(bitmap.get(9, Relaxed), Some(true));
     assert_eq!(bitmap.get(10, Relaxed), None);
@@ -77,7 +78,7 @@ fn bitmap_get_over_capacity_test() {
 
 #[test]
 fn bitmap_set_get_test_unchecked() {
-    let mut bitmap = AtomicBitmap::new(10);
+    let bitmap = AtomicBitmap::new(10);
     unsafe {
         bitmap.set_unchecked(0, false, Relaxed);
         bitmap.set_unchecked(1, true, Relaxed);
@@ -95,7 +96,7 @@ fn bitmap_set_get_test_unchecked() {
 
 #[test]
 fn test_bitmap_to_indices() {
-    let mut bitmap = AtomicBitmap::new(10);
+    let bitmap = AtomicBitmap::new(10);
     bitmap.set(0, true, Relaxed);
     bitmap.set(1, true, Relaxed);
     bitmap.set(2, true, Relaxed);
@@ -118,7 +119,7 @@ fn test_bitmap_to_indices() {
 
 #[test]
 fn bitmap_to_indices_false_test() {
-    let mut bitmap = AtomicBitmap::new(10);
+    let bitmap = AtomicBitmap::new(10);
     bitmap.set(1, true, Relaxed);
     bitmap.set(2, true, Relaxed);
     bitmap.set(4, true, Relaxed);
@@ -132,4 +133,66 @@ fn bitmap_to_indices_false_test() {
     assert_eq!(indices[2], 6);
     assert_eq!(indices[3], 8);
     assert_eq!(indices[4], 9);
+}
+#[test]
+fn bitmap_batch_test_single() {
+    let bitmap = AtomicBitmap::new(10);
+    bitmap.set(0, true, Relaxed);
+    bitmap.set(1, true, Relaxed);
+    bitmap.set(2, true, Relaxed);
+    bitmap.set(3, false, Relaxed);
+    bitmap.set(4, true, Relaxed);
+    bitmap.set(5, true, Relaxed);
+    bitmap.set(6, false, Relaxed);
+    bitmap.set(7, true, Relaxed);
+    bitmap.set(8, false, Relaxed);
+    let handles = Handle::new_batch(&[0, 1, 2, 4, 5, 7]);
+    assert_eq!(handles.capacity(), 1);
+    assert!(bitmap.check_batch(handles.as_slice(), Relaxed));
+}
+
+#[test]
+fn bitmap_batch_test_single_false() {
+    let bitmap = AtomicBitmap::new(10);
+    bitmap.set(0, true, Relaxed);
+    bitmap.set(1, true, Relaxed);
+    bitmap.set(2, true, Relaxed);
+    bitmap.set(3, false, Relaxed);
+    bitmap.set(4, true, Relaxed);
+    bitmap.set(5, true, Relaxed);
+    bitmap.set(6, false, Relaxed);
+    bitmap.set(7, true, Relaxed);
+    bitmap.set(8, false, Relaxed);
+    let handles = Handle::new_batch(&[0, 1, 2, 4, 5, 7, 8]);
+    assert_eq!(bitmap.check_batch(handles.as_slice(), Relaxed), false);
+}
+
+#[test]
+fn bitmap_test_batch() {
+    let bitmap = AtomicBitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, i % 2 == 0, Relaxed);
+    }
+    let handles = Handle::new_batch(&[0, 4, 1022]);
+    assert_eq!(bitmap.check_batch(handles.as_slice(), Relaxed), true);
+}
+
+#[test]
+fn bitmap_test_batch_fail() {
+    let bitmap = AtomicBitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, i % 2 == 0, Relaxed);
+    }
+    let handles = Handle::new_batch(&[0, 4, 1023]);
+    assert_eq!(bitmap.check_batch(handles.as_slice(), Relaxed), false);
+}
+
+#[test]
+fn bitmap_test_batch_overlapping() {
+    let bitmap = AtomicBitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, i % 2 == 0, Relaxed);
+    }
+    let handles = Handle::new_batch(&[0, 4, 6, 8, 10, 12, 14, 1022]);
+    assert_eq!(bitmap.check_batch(handles.as_slice(), Relaxed), true);
 }

@@ -2,6 +2,7 @@ use std::alloc::Layout;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
+use crate::data_structs::bitmap::handle::Handle;
 
 #[derive(Clone, Copy)]
 pub enum Mode {
@@ -51,6 +52,21 @@ impl AtomicBitmap {
             }
         }
         indices
+    }
+
+    pub fn check_batch(&self, handles: &[Handle], mode: Mode) -> bool {
+        for handle in handles {
+            let val = unsafe {
+                match mode {
+                    Mode::Relaxed => (*self.data.add(handle.chunk as usize)).load(Ordering::Relaxed),
+                    Mode::Strict => (*self.data.add(handle.chunk as usize)).load(Ordering::Acquire),
+                }
+            };
+            if (val & handle.bit_mask) != handle.bit_mask {
+                return false;
+            }
+        }
+        true
     }
 
     #[inline(always)]
