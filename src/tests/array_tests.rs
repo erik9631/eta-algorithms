@@ -50,7 +50,7 @@ pub fn extend_test() {
         array[i] = i as i32;
     }
 
-    array.extend(20);
+    array.resize(20);
     for i in 0..10 {
         assert_eq!(array[i], i as i32);
     }
@@ -71,7 +71,7 @@ pub fn extend_by_test() {
         array[i] = i as i32;
     }
 
-    array.extend_by(10);
+    array.resize_by(10);
     for i in 0..10 {
         assert_eq!(array[i], i as i32);
     }
@@ -120,8 +120,8 @@ pub fn multiple_extension_test() {
     for i in 0..5 {
         array[i] = i as i32;
     }
-    array.extend_by(5);
-    array.extend_by(5);
+    array.resize_by(5);
+    array.resize_by(5);
 
     for i in 5..15 {
         array[i] = i as i32;

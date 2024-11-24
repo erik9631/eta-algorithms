@@ -36,7 +36,7 @@ where
     pub fn capacity(&self) -> usize {
         self.capacity
     }
-    pub fn extend(&mut self, new_capacity: usize) {
+    pub fn resize(&mut self, new_capacity: usize) {
         let new_layout = Layout::array::<T>(new_capacity).expect("Failed to create layout");
         let new_ptr = unsafe { realloc(self.data as *mut u8, new_layout, new_layout.size()) };
         if new_ptr.is_null() {
@@ -47,8 +47,8 @@ where
         self.layout = new_layout;
     }
     #[inline(always)]
-    pub fn extend_by(&mut self, additional_capacity: usize) {
-        self.extend(self.capacity + additional_capacity);
+    pub fn resize_by(&mut self, additional_capacity: usize) {
+        self.resize(self.capacity + additional_capacity);
     }
 
     pub fn as_ptr(&self) -> *const T {

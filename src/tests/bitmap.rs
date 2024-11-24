@@ -1,3 +1,4 @@
+use crate::data_structs::bitmap::handle::Handle;
 use crate::data_structs::bitmap::Bitmap;
 
 #[test]
@@ -130,4 +131,67 @@ fn bitmap_to_indices_false_test() {
     assert_eq!(indices[2], 6);
     assert_eq!(indices[3], 8);
     assert_eq!(indices[4], 9);
+}
+
+#[test]
+fn bitmap_batch_test_single() {
+    let mut bitmap = Bitmap::new(10);
+    bitmap.set(0, true);
+    bitmap.set(1, true);
+    bitmap.set(2, true);
+    bitmap.set(3, false);
+    bitmap.set(4, true);
+    bitmap.set(5, true);
+    bitmap.set(6, false);
+    bitmap.set(7, true);
+    bitmap.set(8, false);
+    let handles = Handle::new(&[0, 1, 2, 4, 5, 7]);
+    assert_eq!(handles.capacity(), 1);
+    assert!(bitmap.check_batch(handles.as_slice()));
+}
+
+#[test]
+fn bitmap_batch_test_single_false() {
+    let mut bitmap = Bitmap::new(10);
+    bitmap.set(0, true);
+    bitmap.set(1, true);
+    bitmap.set(2, true);
+    bitmap.set(3, false);
+    bitmap.set(4, true);
+    bitmap.set(5, true);
+    bitmap.set(6, false);
+    bitmap.set(7, true);
+    bitmap.set(8, false);
+    let handles = Handle::new(&[0, 1, 2, 4, 5, 7, 8]);
+    assert_eq!(bitmap.check_batch(handles.as_slice()), false);
+}
+
+#[test]
+fn bitmap_test_batch() {
+    let mut bitmap = Bitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, i % 2 == 0);
+    }
+    let handles = Handle::new(&[0, 4, 1022]);
+    assert_eq!(bitmap.check_batch(handles.as_slice()), true);
+}
+
+#[test]
+fn bitmap_test_batch_fail() {
+    let mut bitmap = Bitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, i % 2 == 0);
+    }
+    let handles = Handle::new(&[0, 4, 1023]);
+    assert_eq!(bitmap.check_batch(handles.as_slice()), false);
+}
+
+#[test]
+fn bitmap_test_batch_overlapping() {
+    let mut bitmap = Bitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, i % 2 == 0);
+    }
+    let handles = Handle::new(&[0, 4, 6, 8, 10, 12, 14, 1022]);
+    assert_eq!(bitmap.check_batch(handles.as_slice()), true);
 }

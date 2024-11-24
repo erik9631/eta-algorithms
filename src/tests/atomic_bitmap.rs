@@ -1,5 +1,5 @@
-use crate::data_structs::atomic_bitmap::AtomicBitmap;
-use crate::data_structs::atomic_bitmap::Mode::Relaxed;
+use crate::data_structs::bitmap::atomic_bitmap::AtomicBitmap;
+use crate::data_structs::bitmap::atomic_bitmap::Mode::Relaxed;
 use crate::data_structs::bitmap::Bitmap;
 
 #[test]

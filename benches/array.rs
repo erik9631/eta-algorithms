@@ -11,7 +11,7 @@ fn benchmark_array(initial_size: usize, data_size: usize) {
     for i in 0..data_size {
         if custom_len == current_size {
             current_size *= 2;
-            custom_array.extend(current_size);
+            custom_array.resize(current_size);
         }
         custom_array[custom_len] = i;
         custom_len += 1;
@@ -44,9 +44,7 @@ fn array_vs_vec(c: &mut Criterion) {
     const INITIAL_SIZE: usize = 2;
     const DATA_SIZE: usize = 100_000_000;
     let mut group = c.benchmark_group("Array vs Vec");
-    group.bench_function("Array", |b| {
-        b.iter(|| benchmark_array(INITIAL_SIZE, DATA_SIZE))
-    });
+    group.bench_function("Array", |b| b.iter(|| benchmark_array(INITIAL_SIZE, DATA_SIZE)));
     group.bench_function("Vec", |b| b.iter(|| benchmark_vec(INITIAL_SIZE, DATA_SIZE)));
     group.finish();
 }

@@ -2,6 +2,10 @@ use std::alloc::Layout;
 use std::ptr;
 
 use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
+use crate::data_structs::bitmap::handle::Handle;
+
+pub mod atomic_bitmap;
+pub mod handle;
 
 #[cfg(target_pointer_width = "64")]
 pub(crate) mod consts {
@@ -20,7 +24,6 @@ pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 4;
     pub(crate) const MASK: usize = 15;
 }
-
 
 pub struct Bitmap {
     data: *mut usize,
@@ -41,6 +44,16 @@ impl Bitmap {
             bit_capacity: bit_count,
             layout,
         }
+    }
+
+    pub fn check_batch(&self, handles: &[Handle]) -> bool {
+        for handle in handles {
+            let val = unsafe { *self.data.add(handle.chunk as usize) };
+            if (val & handle.bit_mask) != handle.bit_mask {
+                return false;
+            }
+        }
+        true
     }
 
     pub fn to_indices_true(&self) -> Vec<usize> {
@@ -77,7 +90,7 @@ impl Bitmap {
         }
 
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & MASK;
         unsafe {
             let ptr = self.data.add(offset);
             *ptr = (*ptr & !(1 << bit_offset)) | ((value as usize) << bit_offset);
