@@ -62,7 +62,7 @@ impl AtomicBitmap {
         self.capacity
     }
     #[inline(always)]
-    pub fn set(&mut self, bit_index: usize, value: bool, mode: Mode) {
+    pub fn set(&self, bit_index: usize, value: bool, mode: Mode) {
         if bit_index >= self.bit_capacity {
             panic!("Bit index out of bounds");
         }
@@ -72,8 +72,14 @@ impl AtomicBitmap {
         unsafe {
             let ptr = self.data.add(offset);
             match mode {
-                Mode::Relaxed => (*ptr).store(((*ptr).load(Ordering::Relaxed) & !(1 << bit_offset)) | ((value as usize) << bit_offset), Ordering::Relaxed),
-                Mode::Strict => (*ptr).store(((*ptr).load(Ordering::Acquire) & !(1 << bit_offset)) | ((value as usize) << bit_offset), Ordering::Release),
+                Mode::Relaxed => (*ptr).store(
+                    ((*ptr).load(Ordering::Relaxed) & !(1 << bit_offset)) | ((value as usize) << bit_offset),
+                    Ordering::Relaxed,
+                ),
+                Mode::Strict => (*ptr).store(
+                    ((*ptr).load(Ordering::Acquire) & !(1 << bit_offset)) | ((value as usize) << bit_offset),
+                    Ordering::Release,
+                ),
             }
         }
     }
@@ -94,14 +100,20 @@ impl AtomicBitmap {
         }
     }
     #[inline(always)]
-    pub unsafe fn set_unchecked(&mut self, bit_index: usize, value: bool, mode: Mode) {
+    pub unsafe fn set_unchecked(&self, bit_index: usize, value: bool, mode: Mode) {
         let offset = bit_index >> DIV_SHIFT;
         let bit_offset = bit_index & (MASK);
         unsafe {
             let ptr = self.data.add(offset);
             match mode {
-                Mode::Relaxed => (*ptr).store(((*ptr).load(Ordering::Relaxed) & !(1 << bit_offset)) | ((value as usize) << bit_offset), Ordering::Relaxed),
-                Mode::Strict => (*ptr).store(((*ptr).load(Ordering::Acquire) & !(1 << bit_offset)) | ((value as usize) << bit_offset), Ordering::Release),
+                Mode::Relaxed => (*ptr).store(
+                    ((*ptr).load(Ordering::Relaxed) & !(1 << bit_offset)) | ((value as usize) << bit_offset),
+                    Ordering::Relaxed,
+                ),
+                Mode::Strict => (*ptr).store(
+                    ((*ptr).load(Ordering::Acquire) & !(1 << bit_offset)) | ((value as usize) << bit_offset),
+                    Ordering::Release,
+                ),
             }
         }
     }
