@@ -1,6 +1,6 @@
 [package]
 name = "eta-algorithms"
-version = "1.7.4"
+version = "1.7.5"
 edition = "2021"
 authors = ["erik9631@gmail.com"]
 description = "Low overhead data structures focused on performance"

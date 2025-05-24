@@ -1,4 +1,5 @@
 use std::alloc::{realloc, Layout};
+use std::fmt::Debug;
 use std::ops::{Index, IndexMut};
 use std::ptr;
 
@@ -102,6 +103,26 @@ where
             self.len -= 1;
             result
         }
+    }
+}
+
+impl<T> Debug for Stack<T>
+where
+    T: Copy + Sized + Debug,
+{
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "Stack [len={}, cap={}] [", self.len, self.capacity)?;
+        unsafe {
+            let mut pivot = self.data;
+            let end = self.top.add(1);
+            while pivot != end {
+                let value = pivot.read();
+                write!(f, " {:?}", value)?;
+                pivot = pivot.add(1);
+            }
+        }
+        write!(f, " ]")?;
+        Ok(())
     }
 }
 
