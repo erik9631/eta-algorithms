@@ -1,7 +1,7 @@
 use std::alloc::Layout;
 use std::ptr;
 
-use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
+use crate::data_structs::bitmap::consts::{BIT_SIZE, DIV_SHIFT, MASK};
 use crate::data_structs::bitmap::handle::Handle;
 
 pub mod atomic_bitmap;
@@ -11,18 +11,21 @@ pub mod handle;
 pub(crate) mod consts {
     pub(crate) const DIV_SHIFT: usize = 6;
     pub(crate) const MASK: usize = 63;
+    pub(crate) const BIT_SIZE: usize = 64;
 }
 
 #[cfg(target_pointer_width = "32")]
 pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 5;
     pub(crate) const MASK: usize = 31;
+    pub(crate) const BIT_SIZE: usize = 32;
 }
 
 #[cfg(target_pointer_width = "16")]
 pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 4;
     pub(crate) const MASK: usize = 15;
+    pub(crate) const BIT_SIZE: usize = 16;
 }
 
 pub struct Bitmap {
@@ -46,6 +49,65 @@ impl Bitmap {
         }
     }
 
+    pub fn first_zero(&self, bit_index: usize) -> usize {
+        if bit_index >= self.bit_capacity {
+            panic!("Bit index out of bounds");
+        }
+        unsafe { self.first_zero_unchecked(bit_index) }
+    }
+
+    pub fn first_one(&self, bit_index: usize) -> usize {
+        if bit_index >= self.bit_capacity {
+            panic!("Bit index out of bounds");
+        }
+        unsafe { self.first_one_unchecked(bit_index) }
+    }
+
+    pub unsafe fn first_zero_unchecked(&self, bit_index: usize) -> usize {
+        let offset = bit_index >> DIV_SHIFT;
+        let bit_offset = bit_index & (MASK);
+        let mut current_shift = bit_offset;
+        let end = self.data.add(self.capacity);
+        let mut data_ptr = self.data.add(offset);
+        let mut data = *data_ptr >> bit_offset;
+        let mut counter = 0;
+
+        while data & 1 == 1 {
+            if current_shift == BIT_SIZE - 1 && data_ptr != end {
+                data_ptr = data_ptr.add(1);
+                data = *data_ptr;
+                current_shift = 0;
+                counter += 1;
+            }
+            data = data >> 1;
+            counter += 1;
+            current_shift += 1;
+        }
+        counter + bit_index
+    }
+    pub unsafe fn first_one_unchecked(&self, bit_index: usize) -> usize {
+        let offset = bit_index >> DIV_SHIFT;
+        let bit_offset = bit_index & (MASK);
+        let mut current_shift = bit_offset;
+        let end = self.data.add(self.capacity);
+        let mut data_ptr = self.data.add(offset);
+        let mut data = *data_ptr >> bit_offset;
+        let mut counter = 0;
+
+        while data & 1 == 0 {
+            if current_shift == BIT_SIZE - 1 && data_ptr != end {
+                data_ptr = data_ptr.add(1);
+                data = *data_ptr;
+                current_shift = 0;
+                counter += 1;
+            }
+            data = data >> 1;
+            counter += 1;
+            current_shift += 1;
+        }
+
+        counter + bit_index
+    }
     pub fn check_batch(&self, handles: &[Handle]) -> bool {
         for handle in handles {
             let val = unsafe { *self.data.add(handle.chunk as usize) };
