@@ -209,7 +209,7 @@ fn bitmap_test_first_zero_1() {
     bitmap.set(7, true);
     bitmap.set(8, false);
 
-    assert_eq!(bitmap.first_zero(0), 3);
+    assert_eq!(bitmap.first_zero(0), Some(3));
 }
 #[test]
 fn bitmap_test_first_zero_2() {
@@ -224,7 +224,7 @@ fn bitmap_test_first_zero_2() {
     bitmap.set(7, true);
     bitmap.set(8, false);
 
-    assert_eq!(bitmap.first_zero(0), 0);
+    assert_eq!(bitmap.first_zero(0), Some(0));
 }
 
 #[test]
@@ -240,7 +240,7 @@ fn bitmap_test_first_zero_3() {
     bitmap.set(7, true);
     bitmap.set(8, false);
 
-    assert_eq!(bitmap.first_zero(0), 8);
+    assert_eq!(bitmap.first_zero(0), Some(8));
 }
 #[test]
 fn bitmap_test_first_zero_4() {
@@ -251,7 +251,7 @@ fn bitmap_test_first_zero_4() {
 
     bitmap.set(70, false);
 
-    assert_eq!(bitmap.first_zero(35), 70);
+    assert_eq!(bitmap.first_zero(35), Some(70));
 }
 
 #[test]
@@ -263,7 +263,7 @@ fn bitmap_test_first_zero_5() {
 
     bitmap.set(1000, false);
 
-    assert_eq!(bitmap.first_zero(35), 1000);
+    assert_eq!(bitmap.first_zero(35), Some(1000));
 }
 
 #[test]
@@ -277,7 +277,21 @@ fn bitmap_test_first_zero_6() {
     bitmap.set(1001, false);
     bitmap.set(1002, false);
 
-    assert_eq!(bitmap.first_zero(35), 1000);
+    assert_eq!(bitmap.first_zero(35), Some(1000));
+}
+
+#[test]
+fn bitmap_test_first_zero_7() {
+    let mut bitmap = Bitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, true);
+    }
+
+    bitmap.set(1000, false);
+    bitmap.set(1001, false);
+    bitmap.set(1002, false);
+
+    assert_eq!(bitmap.first_zero(1000), Some(1000));
 }
 
 #[test]
@@ -293,7 +307,7 @@ fn bitmap_test_first_one_1() {
     bitmap.set(7, false);
     bitmap.set(8, true);
 
-    assert_eq!(bitmap.first_one(0), 3);
+    assert_eq!(bitmap.first_one(0), Some(3));
 }
 #[test]
 fn bitmap_test_first_one_2() {
@@ -308,7 +322,7 @@ fn bitmap_test_first_one_2() {
     bitmap.set(7, true);
     bitmap.set(8, false);
 
-    assert_eq!(bitmap.first_one(0), 0);
+    assert_eq!(bitmap.first_one(0), Some(0));
 }
 
 #[test]
@@ -324,7 +338,7 @@ fn bitmap_test_first_one_3() {
     bitmap.set(7, false);
     bitmap.set(8, true);
 
-    assert_eq!(bitmap.first_one(0), 8);
+    assert_eq!(bitmap.first_one(0), Some(8));
 }
 #[test]
 fn bitmap_test_first_one_4() {
@@ -335,7 +349,7 @@ fn bitmap_test_first_one_4() {
 
     bitmap.set(70, true);
 
-    assert_eq!(bitmap.first_one(35), 70);
+    assert_eq!(bitmap.first_one(35), Some(70));
 }
 
 #[test]
@@ -347,7 +361,7 @@ fn bitmap_test_first_one_5() {
 
     bitmap.set(1000, true);
 
-    assert_eq!(bitmap.first_one(35), 1000);
+    assert_eq!(bitmap.first_one(35), Some(1000));
 }
 
 #[test]
@@ -361,7 +375,21 @@ fn bitmap_test_first_one_6() {
     bitmap.set(1001, true);
     bitmap.set(1002, true);
 
-    assert_eq!(bitmap.first_zero(35), 1000);
+    assert_eq!(bitmap.first_one(35), Some(1000));
+}
+
+#[test]
+fn bitmap_test_first_one_7() {
+    let mut bitmap = Bitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, false);
+    }
+
+    bitmap.set(1000, true);
+    bitmap.set(1001, true);
+    bitmap.set(1002, true);
+
+    assert_eq!(bitmap.first_one(1000), Some(1000));
 }
 
 #[test]
@@ -373,7 +401,7 @@ fn bitmap_test_first_zero_end() {
 
     bitmap.set(63, false);
 
-    assert_eq!(bitmap.first_zero(63), 63);
+    assert_eq!(bitmap.first_zero(63), Some(63));
 }
 
 #[test]
@@ -385,5 +413,22 @@ fn bitmap_test_first_one_end() {
 
     bitmap.set(63, true);
 
-    assert_eq!(bitmap.first_one(63), 63);
+    assert_eq!(bitmap.first_one(63), Some(63));
+}
+
+#[test]
+fn bitmap_test_no_one_test() {
+    let mut bitmap = Bitmap::new(64);
+    for i in 0..64 {
+        bitmap.set(i, false);
+    }
+    assert_eq!(bitmap.first_one(0), None);
+}
+#[test]
+fn bitmap_test_no_zero_test() {
+    let mut bitmap = Bitmap::new(64);
+    for i in 0..64 {
+        bitmap.set(i, true);
+    }
+    assert_eq!(bitmap.first_zero(0), None);
 }

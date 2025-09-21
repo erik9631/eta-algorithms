@@ -1,7 +1,7 @@
 use std::alloc::Layout;
 use std::sync::atomic::{AtomicUsize, Ordering};
 
-use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
+use crate::data_structs::bitmap::consts::{BIT_END_OFFSET, DIV_SHIFT};
 use crate::data_structs::bitmap::handle::Handle;
 
 #[derive(Clone, Copy)]
@@ -84,7 +84,7 @@ impl AtomicBitmap {
         }
 
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & (BIT_END_OFFSET);
         unsafe {
             let ptr = self.data.add(offset);
             match mode {
@@ -106,7 +106,7 @@ impl AtomicBitmap {
         }
 
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & (BIT_END_OFFSET);
         unsafe {
             let ptr = self.data.add(offset);
             match mode {
@@ -118,7 +118,7 @@ impl AtomicBitmap {
     #[inline(always)]
     pub unsafe fn set_unchecked(&self, bit_index: usize, value: bool, mode: Mode) {
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & (BIT_END_OFFSET);
         unsafe {
             let ptr = self.data.add(offset);
             match mode {
@@ -136,7 +136,7 @@ impl AtomicBitmap {
     #[inline(always)]
     pub unsafe fn get_unchecked(&self, bit_index: usize, mode: Mode) -> bool {
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & (BIT_END_OFFSET);
         unsafe {
             let ptr = self.data.add(offset);
             match mode {

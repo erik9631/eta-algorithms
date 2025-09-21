@@ -1,5 +1,5 @@
 use crate::data_structs::array::Array;
-use crate::data_structs::bitmap::consts::{DIV_SHIFT, MASK};
+use crate::data_structs::bitmap::consts::{BIT_END_OFFSET, DIV_SHIFT};
 use std::collections::HashMap;
 use std::ops::BitOrAssign;
 
@@ -32,7 +32,7 @@ impl Handle {
                     index
                 }
             };
-            let bit_offset = offset & MASK;
+            let bit_offset = offset & BIT_END_OFFSET;
             let mask: usize = 1 << bit_offset;
             unsafe {
                 *array.index_unchecked_mut(index) |= Self {

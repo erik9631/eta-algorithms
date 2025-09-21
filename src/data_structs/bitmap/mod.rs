@@ -1,7 +1,7 @@
 use std::alloc::Layout;
 use std::ptr;
 
-use crate::data_structs::bitmap::consts::{BIT_SIZE, DIV_SHIFT, MASK};
+use crate::data_structs::bitmap::consts::{BIT_END_OFFSET, BIT_MASK, DIV_SHIFT};
 use crate::data_structs::bitmap::handle::Handle;
 
 pub mod atomic_bitmap;
@@ -9,23 +9,23 @@ pub mod handle;
 
 #[cfg(target_pointer_width = "64")]
 pub(crate) mod consts {
-    pub(crate) const DIV_SHIFT: usize = 6;
-    pub(crate) const MASK: usize = 63;
-    pub(crate) const BIT_SIZE: usize = 64;
+    pub(crate) const DIV_SHIFT: usize = 6; // Divide by 64 => 2^6
+    pub(crate) const BIT_END_OFFSET: usize = 63;
+    pub(crate) const BIT_MASK: usize = 0xFFFFFFFFFFFFFFFF;
 }
 
 #[cfg(target_pointer_width = "32")]
 pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 5;
-    pub(crate) const MASK: usize = 31;
-    pub(crate) const BIT_SIZE: usize = 32;
+    pub(crate) const BIT_END_OFFSET: usize = 31;
+    pub(crate) const BIT_MASK: usize = 0xFFFFFFFF;
 }
 
 #[cfg(target_pointer_width = "16")]
 pub(self) mod consts {
     pub(crate) const DIV_SHIFT: usize = 4;
-    pub(crate) const MASK: usize = 15;
-    pub(crate) const BIT_SIZE: usize = 16;
+    pub(crate) const BIT_END_OFFSET: usize = 15;
+    pub(crate) const BIT_MASK: usize = 0xFFFF;
 }
 
 pub struct Bitmap {
@@ -49,64 +49,76 @@ impl Bitmap {
         }
     }
 
-    pub fn first_zero(&self, bit_index: usize) -> usize {
+    pub fn first_zero(&self, bit_index: usize) -> Option<usize> {
         if bit_index >= self.bit_capacity {
             panic!("Bit index out of bounds");
         }
-        unsafe { self.first_zero_unchecked(bit_index) }
-    }
 
-    pub fn first_one(&self, bit_index: usize) -> usize {
+        let index = unsafe { self.first_zero_unchecked(bit_index) };
+        if index >= self.bit_capacity {
+            None
+        } else {
+            Some(index)
+        }
+    }
+    pub fn first_one(&self, bit_index: usize) -> Option<usize> {
         if bit_index >= self.bit_capacity {
             panic!("Bit index out of bounds");
         }
-        unsafe { self.first_one_unchecked(bit_index) }
-    }
 
+        let index = unsafe { self.first_one_unchecked(bit_index) };
+        if index >= self.bit_capacity {
+            None
+        } else {
+            Some(index)
+        }
+    }
+    /// Returns higher > bit_capacity in case of not found
     pub unsafe fn first_zero_unchecked(&self, bit_index: usize) -> usize {
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
-        let mut current_shift = bit_offset;
-        let end = self.data.add(self.capacity);
-        let mut data_ptr = self.data.add(offset);
-        let mut data = *data_ptr >> bit_offset;
-        let mut counter = 0;
+        let bit_offset = bit_index & BIT_END_OFFSET;
 
-        while data & 1 == 1 {
-            if current_shift == BIT_SIZE - 1 && data_ptr != end {
+        //We scan the last chunk with trailing, if it fails it shall return the max
+        let last_chunk = self.data.add(self.capacity - 1);
+        let mut data_ptr = self.data.add(offset);
+        let mut counter = offset * (BIT_END_OFFSET + 1);
+        let mut data = *data_ptr | ((1 << bit_offset) - 1);
+
+        while data & BIT_MASK == BIT_MASK {
+            if data_ptr != last_chunk {
                 data_ptr = data_ptr.add(1);
                 data = *data_ptr;
-                current_shift = 0;
-                counter += 1;
+                counter += BIT_END_OFFSET + 1;
+                continue;
             }
-            data = data >> 1;
-            counter += 1;
-            current_shift += 1;
+            break;
         }
-        counter + bit_index
+        counter += data.trailing_ones() as usize;
+        counter
     }
+
+    /// Returns higher > bit_capacity in case of not found
     pub unsafe fn first_one_unchecked(&self, bit_index: usize) -> usize {
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
-        let mut current_shift = bit_offset;
-        let end = self.data.add(self.capacity);
-        let mut data_ptr = self.data.add(offset);
-        let mut data = *data_ptr >> bit_offset;
-        let mut counter = 0;
+        let bit_offset = bit_index & BIT_END_OFFSET;
 
-        while data & 1 == 0 {
-            if current_shift == BIT_SIZE - 1 && data_ptr != end {
+        //We scan the last chunk with trailing, if it fails it shall return the max
+        let last_chunk = self.data.add(self.capacity - 1);
+        let mut data_ptr = self.data.add(offset);
+        let mut counter = offset * (BIT_END_OFFSET + 1);
+        let mut data = *data_ptr & !((1 << bit_offset) - 1);
+
+        while !data & BIT_MASK == BIT_MASK {
+            if data_ptr != last_chunk {
                 data_ptr = data_ptr.add(1);
                 data = *data_ptr;
-                current_shift = 0;
-                counter += 1;
+                counter += BIT_END_OFFSET + 1;
+                continue;
             }
-            data = data >> 1;
-            counter += 1;
-            current_shift += 1;
+            break;
         }
-
-        counter + bit_index
+        counter += data.trailing_zeros() as usize;
+        counter
     }
     pub fn check_batch(&self, handles: &[Handle]) -> bool {
         for handle in handles {
@@ -152,7 +164,7 @@ impl Bitmap {
         }
 
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & MASK;
+        let bit_offset = bit_index & BIT_END_OFFSET;
         unsafe {
             let ptr = self.data.add(offset);
             *ptr = (*ptr & !(1 << bit_offset)) | ((value as usize) << bit_offset);
@@ -165,7 +177,7 @@ impl Bitmap {
         }
 
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & (BIT_END_OFFSET);
         unsafe {
             let ptr = self.data.add(offset);
             Some((*ptr & (1 << bit_offset)) != 0)
@@ -174,7 +186,7 @@ impl Bitmap {
     #[inline(always)]
     pub unsafe fn set_unchecked(&mut self, bit_index: usize, value: bool) {
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & (BIT_END_OFFSET);
         unsafe {
             let ptr = self.data.add(offset);
             *ptr = (*ptr & !(1 << bit_offset)) | ((value as usize) << bit_offset);
@@ -183,7 +195,7 @@ impl Bitmap {
     #[inline(always)]
     pub unsafe fn get_unchecked(&self, bit_index: usize) -> bool {
         let offset = bit_index >> DIV_SHIFT;
-        let bit_offset = bit_index & (MASK);
+        let bit_offset = bit_index & (BIT_END_OFFSET);
         unsafe {
             let ptr = self.data.add(offset);
             (*ptr & (1 << bit_offset)) != 0
