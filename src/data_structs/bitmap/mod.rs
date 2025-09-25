@@ -49,11 +49,20 @@ impl Bitmap {
         }
     }
 
+    #[inline(always)]
     pub fn count_zeros(&self, lower_bound: usize, upper_bound: usize) -> usize {
+        if upper_bound == 0 {
+            panic!("Upper bound cannot be zero");
+        }
+
+        if lower_bound > upper_bound {
+            panic!("Lower bound cannot be greater than upper bound");
+        }
+
         if lower_bound >= self.bit_capacity {
             panic!("Bit index out of bounds");
         }
-        if upper_bound >= self.bit_capacity {
+        if upper_bound > self.bit_capacity {
             panic!("Upper bound out of bounds");
         }
 
@@ -63,13 +72,21 @@ impl Bitmap {
 
         unsafe { self.count_zeros_unchecked(lower_bound, upper_bound - 1) }
     }
-
+    #[inline(always)]
     pub fn count_ones(&self, lower_bound: usize, upper_bound: usize) -> usize {
+        if upper_bound == 0 {
+            panic!("Upper bound cannot be zero");
+        }
+
+        if lower_bound > upper_bound {
+            panic!("Lower bound cannot be greater than upper bound");
+        }
+
         if lower_bound >= self.bit_capacity {
             panic!("Bit index out of bounds");
         }
 
-        if upper_bound >= self.bit_capacity {
+        if upper_bound > self.bit_capacity {
             panic!("Upper bound out of bounds");
         }
 
@@ -144,8 +161,16 @@ impl Bitmap {
         }
         counter
     }
-
+    #[inline(always)]
     pub fn first_one_bounds(&self, lower_bound: usize, upper_bound: usize) -> Option<usize> {
+        if upper_bound == 0 {
+            panic!("Upper bound cannot be zero");
+        }
+
+        if lower_bound > upper_bound {
+            panic!("Lower bound cannot be greater than upper bound");
+        }
+
         if lower_bound >= self.bit_capacity {
             panic!("Bit index out of bounds");
         }
@@ -159,8 +184,16 @@ impl Bitmap {
             Some(index)
         }
     }
-
+    #[inline(always)]
     pub fn first_zero_bounds(&self, lower_bound: usize, upper_bound: usize) -> Option<usize> {
+        if upper_bound == 0 {
+            panic!("Upper bound cannot be zero");
+        }
+
+        if lower_bound > upper_bound {
+            panic!("Lower bound cannot be greater than upper bound");
+        }
+
         if lower_bound >= self.bit_capacity {
             panic!("Bit index out of bounds");
         }
@@ -174,7 +207,7 @@ impl Bitmap {
             Some(index)
         }
     }
-
+    #[inline(always)]
     pub fn first_zero(&self, bit_index: usize) -> Option<usize> {
         if bit_index >= self.bit_capacity {
             panic!("Bit index out of bounds");
@@ -187,6 +220,7 @@ impl Bitmap {
             Some(index)
         }
     }
+    #[inline(always)]
     pub fn first_one(&self, bit_index: usize) -> Option<usize> {
         if bit_index >= self.bit_capacity {
             panic!("Bit index out of bounds");

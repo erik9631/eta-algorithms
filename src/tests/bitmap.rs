@@ -549,7 +549,7 @@ fn bitmap_test_count_one_3() {
         bitmap.set(i, false);
     }
     bitmap.set(64, true);
-    assert_eq!(bitmap.count_ones(64, 100), 1);
+    assert_eq!(bitmap.count_ones(64, 65), 1);
 }
 
 #[test]
@@ -623,4 +623,173 @@ fn bitmap_test_count_zero_over() {
     }
     bitmap.set(64, false);
     assert_eq!(bitmap.count_zeros(64, 66), 0);
+}
+
+// Lower bound out of bounds tests
+#[test]
+#[should_panic]
+fn bitmap_test_count_one_lower_bound_over() {
+    let bitmap = Bitmap::new(65);
+    bitmap.count_ones(65, 66);
+}
+
+#[test]
+#[should_panic]
+fn bitmap_test_count_zero_lower_bound_over() {
+    let bitmap = Bitmap::new(65);
+    bitmap.count_zeros(65, 66);
+}
+
+// Lower bound greater than upper bound tests
+#[test]
+#[should_panic]
+fn bitmap_test_count_one_invalid_range() {
+    let bitmap = Bitmap::new(100);
+    bitmap.count_ones(50, 30);
+}
+
+#[test]
+#[should_panic]
+fn bitmap_test_count_zero_invalid_range() {
+    let bitmap = Bitmap::new(100);
+    bitmap.count_zeros(50, 30);
+}
+
+// Single bit ranges (adjacent indices)
+#[test]
+fn bitmap_test_count_one_single_bit() {
+    let mut bitmap = Bitmap::new(100);
+    bitmap.set(50, true);
+    assert_eq!(bitmap.count_ones(50, 51), 1);
+    assert_eq!(bitmap.count_ones(49, 50), 0);
+}
+
+#[test]
+fn bitmap_test_count_zero_single_bit() {
+    let mut bitmap = Bitmap::new(100);
+    for i in 0..100 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(50, false);
+    assert_eq!(bitmap.count_zeros(50, 51), 1);
+    assert_eq!(bitmap.count_zeros(49, 50), 0);
+}
+
+// Cross-chunk boundary tests (important for 64-bit boundaries)
+#[test]
+fn bitmap_test_count_one_cross_chunk() {
+    let mut bitmap = Bitmap::new(200);
+    // Set bits around 64-bit boundaries
+    for i in 60..68 {
+        bitmap.set(i, true);
+    }
+    for i in 124..132 {
+        bitmap.set(i, true);
+    }
+
+    assert_eq!(bitmap.count_ones(62, 66), 4); // Cross 64-bit boundary
+    assert_eq!(bitmap.count_ones(126, 130), 4); // Cross 128-bit boundary
+}
+
+#[test]
+fn bitmap_test_count_zero_cross_chunk() {
+    let mut bitmap = Bitmap::new(200);
+    // Set all bits to true, then clear some around boundaries
+    for i in 0..200 {
+        bitmap.set(i, true);
+    }
+    for i in 60..68 {
+        bitmap.set(i, false);
+    }
+
+    assert_eq!(bitmap.count_zeros(62, 66), 4); // Cross 64-bit boundary
+    assert_eq!(bitmap.count_zeros(60, 68), 8); // Full range
+}
+
+// Same chunk tests (within single usize)
+#[test]
+fn bitmap_test_count_one_same_chunk() {
+    let mut bitmap = Bitmap::new(100);
+    // Set some bits within first chunk (0-63)
+    bitmap.set(10, true);
+    bitmap.set(20, true);
+    bitmap.set(30, true);
+
+    assert_eq!(bitmap.count_ones(5, 35), 3);
+    assert_eq!(bitmap.count_ones(15, 25), 1);
+}
+
+#[test]
+fn bitmap_test_count_zero_same_chunk() {
+    let mut bitmap = Bitmap::new(100);
+    // Set all bits in first chunk to true, then clear some
+    for i in 0..64 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(10, false);
+    bitmap.set(20, false);
+    bitmap.set(30, false);
+
+    assert_eq!(bitmap.count_zeros(5, 35), 3);
+    assert_eq!(bitmap.count_zeros(15, 25), 1);
+}
+
+// Boundary edge cases
+#[test]
+fn bitmap_test_count_one_at_capacity() {
+    let mut bitmap = Bitmap::new(64);
+    for i in 0..64 {
+        bitmap.set(i, true);
+    }
+
+    assert_eq!(bitmap.count_ones(63, 64), 1); // Last bit
+    assert_eq!(bitmap.count_ones(0, 64), 64); // Full capacity
+}
+
+#[test]
+fn bitmap_test_count_zero_at_capacity() {
+    let mut bitmap = Bitmap::new(64);
+    bitmap.set(63, false);
+
+    assert_eq!(bitmap.count_zeros(63, 64), 1); // Last bit
+    assert_eq!(bitmap.count_zeros(0, 64), 64); // All zeros (initialized state)
+}
+
+// Large range spanning many chunks
+#[test]
+fn bitmap_test_count_one_large_range() {
+    let mut bitmap = Bitmap::new(1000);
+    // Set every 10th bit to true
+    for i in (0..1000).step_by(10) {
+        bitmap.set(i, true);
+    }
+
+    assert_eq!(bitmap.count_ones(0, 1000), 100);
+    assert_eq!(bitmap.count_ones(100, 900), 80); // 80 bits set in this range
+}
+
+#[test]
+fn bitmap_test_count_zero_large_range() {
+    let mut bitmap = Bitmap::new(1000);
+    // Set all bits to true, then clear every 10th
+    for i in 0..1000 {
+        bitmap.set(i, true);
+    }
+    for i in (0..1000).step_by(10) {
+        bitmap.set(i, false);
+    }
+
+    assert_eq!(bitmap.count_zeros(0, 1000), 100);
+    assert_eq!(bitmap.count_zeros(100, 900), 80);
+}
+
+#[test]
+fn bitmap_test_count_zero_length_ranges() {
+    let bitmap = Bitmap::new(100);
+
+    assert_eq!(bitmap.count_ones(50, 50), 0);
+    assert_eq!(bitmap.count_ones(99, 99), 0);
+
+    assert_eq!(bitmap.count_zeros(50, 50), 0);
+    assert_eq!(bitmap.count_zeros(99, 99), 0);
 }
