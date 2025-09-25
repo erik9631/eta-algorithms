@@ -393,6 +393,20 @@ fn bitmap_test_first_one_7() {
 }
 
 #[test]
+fn bitmap_test_first_one_8() {
+    let mut bitmap = Bitmap::new(1024);
+    for i in 0..1024 {
+        bitmap.set(i, false);
+    }
+
+    bitmap.set(1000, true);
+    bitmap.set(1001, true);
+    bitmap.set(1002, true);
+
+    assert_eq!(bitmap.first_one(0), Some(1000));
+}
+
+#[test]
 fn bitmap_test_first_zero_end() {
     let mut bitmap = Bitmap::new(64);
     for i in 0..64 {
@@ -431,4 +445,182 @@ fn bitmap_test_no_zero_test() {
         bitmap.set(i, true);
     }
     assert_eq!(bitmap.first_zero(0), None);
+}
+
+#[test]
+fn bitmap_test_upper_bound_zero_test_1() {
+    let mut bitmap = Bitmap::new(64);
+    for i in 0..64 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(5, false);
+
+    assert_eq!(bitmap.first_zero_bounds(4, 7), Some(5));
+}
+
+#[test]
+fn bitmap_test_upper_bound_zero_test_2() {
+    let mut bitmap = Bitmap::new(100);
+    for i in 0..100 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(65, false);
+    bitmap.set(66, false);
+    bitmap.set(67, false);
+
+    assert_eq!(bitmap.first_zero_bounds(60, 66), Some(65));
+}
+
+#[test]
+fn bitmap_test_upper_bound_zero_test_3() {
+    let mut bitmap = Bitmap::new(1000);
+    for i in 0..1000 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(991, false);
+    bitmap.set(999, false);
+
+    assert_eq!(bitmap.first_zero_bounds(992, 1000), Some(999));
+}
+
+#[test]
+fn bitmap_test_upper_bound_one_test_1() {
+    let mut bitmap = Bitmap::new(64);
+    for i in 0..64 {
+        bitmap.set(i, false);
+    }
+    bitmap.set(5, true);
+
+    assert_eq!(bitmap.first_one_bounds(4, 7), Some(5));
+}
+
+#[test]
+fn bitmap_test_upper_bound_one_test_2() {
+    let mut bitmap = Bitmap::new(100);
+    for i in 0..100 {
+        bitmap.set(i, false);
+    }
+    bitmap.set(65, true);
+    bitmap.set(66, true);
+    bitmap.set(67, true);
+
+    assert_eq!(bitmap.first_one_bounds(60, 66), Some(65));
+}
+
+#[test]
+fn bitmap_test_upper_bound_one_test_3() {
+    let mut bitmap = Bitmap::new(1000);
+    for i in 0..1000 {
+        bitmap.set(i, false);
+    }
+    bitmap.set(991, true);
+    bitmap.set(999, true);
+
+    assert_eq!(bitmap.first_one_bounds(992, 1000), Some(999));
+}
+
+#[test]
+fn bitmap_test_count_one_1() {
+    let mut bitmap = Bitmap::new(100);
+    for i in 0..100 {
+        bitmap.set(i, true);
+    }
+    assert_eq!(bitmap.count_ones(0, 100), 100);
+    assert_eq!(bitmap.count_ones(25, 100), 75);
+    assert_eq!(bitmap.count_ones(50, 100), 50);
+    assert_eq!(bitmap.count_ones(25, 100), 75);
+    assert_eq!(bitmap.count_ones(99, 100), 1);
+}
+
+#[test]
+fn bitmap_test_count_one_2() {
+    let mut bitmap = Bitmap::new(100);
+    for i in 0..100 {
+        bitmap.set(i, i % 2 == 0);
+    }
+    assert_eq!(bitmap.count_ones(0, 100), 50);
+    assert_eq!(bitmap.count_ones(25, 100), 37);
+}
+
+#[test]
+fn bitmap_test_count_one_3() {
+    let mut bitmap = Bitmap::new(65);
+    for i in 0..65 {
+        bitmap.set(i, false);
+    }
+    bitmap.set(64, true);
+    assert_eq!(bitmap.count_ones(64, 100), 1);
+}
+
+#[test]
+fn bitmap_test_count_zero_1() {
+    let mut bitmap = Bitmap::new(100);
+    for i in 0..100 {
+        bitmap.set(i, false);
+    }
+    assert_eq!(bitmap.count_zeros(0, 100), 100); // Expected behavior as unbounded search looks till the end of the memory
+    assert_eq!(bitmap.count_zeros(25, 100), 75);
+    assert_eq!(bitmap.count_zeros(50, 100), 50);
+    assert_eq!(bitmap.count_zeros(99, 100), 1);
+}
+
+#[test]
+fn bitmap_test_count_zero_2() {
+    let mut bitmap = Bitmap::new(100);
+    for i in 0..100 {
+        bitmap.set(i, i % 2 == 1);
+    }
+    assert_eq!(bitmap.count_zeros(0, 100), 50); // 50 zeros from pattern + 28 additional zeros in allocated memory
+    assert_eq!(bitmap.count_zeros(25, 100), 37);
+}
+
+#[test]
+fn bitmap_test_count_zero_3() {
+    let mut bitmap = Bitmap::new(65);
+    for i in 0..65 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(64, false);
+    assert_eq!(bitmap.count_zeros(64, 65), 1);
+}
+
+#[test]
+fn bitmap_test_count_zero_eq() {
+    let mut bitmap = Bitmap::new(65);
+    for i in 0..65 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(64, false);
+    assert_eq!(bitmap.count_zeros(64, 64), 0);
+}
+
+#[test]
+fn bitmap_test_count_one_eq() {
+    let mut bitmap = Bitmap::new(65);
+    for i in 0..65 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(64, false);
+    assert_eq!(bitmap.count_ones(64, 64), 0);
+}
+#[test]
+#[should_panic]
+fn bitmap_test_count_one_over() {
+    let mut bitmap = Bitmap::new(65);
+    for i in 0..65 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(64, false);
+    assert_eq!(bitmap.count_ones(64, 66), 0);
+}
+
+#[test]
+#[should_panic]
+fn bitmap_test_count_zero_over() {
+    let mut bitmap = Bitmap::new(65);
+    for i in 0..65 {
+        bitmap.set(i, true);
+    }
+    bitmap.set(64, false);
+    assert_eq!(bitmap.count_zeros(64, 66), 0);
 }

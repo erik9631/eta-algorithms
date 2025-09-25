@@ -49,6 +49,132 @@ impl Bitmap {
         }
     }
 
+    pub fn count_zeros(&self, lower_bound: usize, upper_bound: usize) -> usize {
+        if lower_bound >= self.bit_capacity {
+            panic!("Bit index out of bounds");
+        }
+        if upper_bound >= self.bit_capacity {
+            panic!("Upper bound out of bounds");
+        }
+
+        if lower_bound == upper_bound {
+            return 0;
+        }
+
+        unsafe { self.count_zeros_unchecked(lower_bound, upper_bound - 1) }
+    }
+
+    pub fn count_ones(&self, lower_bound: usize, upper_bound: usize) -> usize {
+        if lower_bound >= self.bit_capacity {
+            panic!("Bit index out of bounds");
+        }
+
+        if upper_bound >= self.bit_capacity {
+            panic!("Upper bound out of bounds");
+        }
+
+        if lower_bound == upper_bound {
+            return 0;
+        }
+
+        unsafe { self.count_ones_unchecked(lower_bound, upper_bound - 1) }
+    }
+
+    pub unsafe fn count_zeros_unchecked(&self, lower_bound: usize, upper_bound: usize) -> usize {
+        let lower_offset = lower_bound >> DIV_SHIFT;
+        let lower_bit_offset = lower_bound & BIT_END_OFFSET;
+        let upper_offset = upper_bound >> DIV_SHIFT;
+        let upper_bit_offset = upper_bound & BIT_END_OFFSET;
+        let mut data_ptr = self.data.add(lower_offset);
+        let mut data = if lower_offset != upper_offset {
+            *data_ptr | ((1 << lower_bit_offset) - 1)
+        } else {
+            (*data_ptr | ((1 << lower_bit_offset) - 1)) | !(((1 << upper_bit_offset) - 1) | (1 << upper_bit_offset))
+            // + 1 because inclusive and we need to do upper and lower bound masking
+        };
+        let mut counter = data.count_zeros() as usize;
+        let end = self.data.add(upper_offset);
+        loop {
+            data_ptr = data_ptr.add(1);
+            data = *data_ptr;
+            if data_ptr >= end {
+                break;
+            }
+            counter += data.count_zeros() as usize;
+        }
+        // The remainder
+        if upper_offset != lower_offset {
+            let data_end_ptr = data_ptr;
+            // The other OR is there to add 1 because upper_bound is inclusive
+            let data_end = *data_end_ptr | !(((1 << upper_bit_offset) - 1) | (1 << upper_bit_offset)); // + 1 because inclusive
+            counter += data_end.count_zeros() as usize;
+        }
+
+        counter
+    }
+
+    pub unsafe fn count_ones_unchecked(&self, lower_bound: usize, upper_bound: usize) -> usize {
+        let lower_offset = lower_bound >> DIV_SHIFT;
+        let lower_bit_offset = lower_bound & BIT_END_OFFSET;
+        let upper_offset = upper_bound >> DIV_SHIFT;
+        let upper_bit_offset = upper_bound & BIT_END_OFFSET;
+        let mut data_ptr = self.data.add(lower_offset);
+        let mut data = if lower_offset != upper_offset {
+            *data_ptr & (!((1 << lower_bit_offset) - 1))
+        } else {
+            (*data_ptr & (!((1 << lower_bit_offset) - 1))) & (((1 << upper_bit_offset) - 1) | (1 << upper_bit_offset))
+            // + 1 because inclusive and we need to do upper and lower bound masking
+        };
+        let mut counter = data.count_ones() as usize;
+        let end = self.data.add(upper_offset);
+        loop {
+            data_ptr = data_ptr.add(1);
+            data = *data_ptr;
+            if data_ptr >= end {
+                break;
+            }
+            counter += data.count_ones() as usize;
+        }
+        // The remainder
+        if upper_offset != lower_offset {
+            let data_end_ptr = data_ptr;
+            // The other OR is there to add 1 because upper_bound is inclusive
+            let data_end = *data_end_ptr & (((1 << upper_bit_offset) - 1) | (1 << upper_bit_offset));
+            counter += data_end.count_ones() as usize;
+        }
+        counter
+    }
+
+    pub fn first_one_bounds(&self, lower_bound: usize, upper_bound: usize) -> Option<usize> {
+        if lower_bound >= self.bit_capacity {
+            panic!("Bit index out of bounds");
+        }
+        if upper_bound > self.bit_capacity {
+            panic!("Upper bound out of bounds");
+        }
+        let index = unsafe { self.first_one_unchecked(lower_bound) };
+        if index >= upper_bound {
+            None
+        } else {
+            Some(index)
+        }
+    }
+
+    pub fn first_zero_bounds(&self, lower_bound: usize, upper_bound: usize) -> Option<usize> {
+        if lower_bound >= self.bit_capacity {
+            panic!("Bit index out of bounds");
+        }
+        if upper_bound > self.bit_capacity {
+            panic!("Upper bound out of bounds");
+        }
+        let index = unsafe { self.first_zero_unchecked(lower_bound) };
+        if index >= upper_bound {
+            None
+        } else {
+            Some(index)
+        }
+    }
+
     pub fn first_zero(&self, bit_index: usize) -> Option<usize> {
         if bit_index >= self.bit_capacity {
             panic!("Bit index out of bounds");
