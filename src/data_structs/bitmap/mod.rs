@@ -299,9 +299,44 @@ impl Bitmap {
         }
         indices
     }
+
+    pub fn to_indices_true_bounded(&self, start: usize, end: usize) -> Vec<usize> {
+        if start >= end {
+            panic!("Start must be less than end");
+        }
+        if end > self.bit_capacity {
+            panic!("End must be less than or equal to bit capacity");
+        }
+
+        let mut indices = Vec::new();
+        for i in start..end {
+            if unsafe { self.get_unchecked(i) } {
+                indices.push(i);
+            }
+        }
+        indices
+    }
+
     pub fn to_indices_false(&self) -> Vec<usize> {
         let mut indices = Vec::new();
         for i in 0..self.bit_capacity {
+            if unsafe { self.get_unchecked(i) == false } {
+                indices.push(i);
+            }
+        }
+        indices
+    }
+
+    pub fn to_indices_false_bounded(&self, start: usize, end: usize) -> Vec<usize> {
+        if start >= end {
+            panic!("Start must be less than end");
+        }
+        if end > self.bit_capacity {
+            panic!("End must be less than or equal to bit capacity");
+        }
+
+        let mut indices = Vec::new();
+        for i in start..end {
             if unsafe { self.get_unchecked(i) == false } {
                 indices.push(i);
             }
